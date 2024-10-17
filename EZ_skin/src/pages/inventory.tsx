@@ -25,41 +25,37 @@ const InventoryPage: React.FC<{
   const [showMessage, setShowMessage] = useState<string | null>(null);
   const [selectionEnabled, setSelectionEnabled] = useState<boolean>(false);
   const [selectedItems, setSelectedItems] = useState<InventoryItem[]>([]);
+  const SOCKET_SERVER_URL =
+  process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
   // Maximum number of items that can be selected
   const MAX_SELECTED_ITEMS = 20;
 
   // Fetch inventory and handle loading state
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const steamID64 = params.get("steamID64");
-    const appId = params.get("appId") || "252490";
-    const contextId = params.get("contextId") || "2";
-    const SOCKET_SERVER_URL =
-      process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
-
-    if (steamID64) {
-      const fetchInventory = async () => {
-        try {
-          const response = await fetch(
-            `${SOCKET_SERVER_URL}/api/inventory?steamID64=${steamID64}&appId=${appId}&contextId=${contextId}`
-          );
-          if (!response.ok) {
-            throw new Error("Failed to fetch inventory");
-          }
-          const data: InventoryResponse = await response.json();
-          setInventory(data.items);
-        } catch (err: any) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
-          setTimeout(() => setSelectionEnabled(true), 2000);
+    const fetchInventory = async () => {
+      try {
+        const response = await fetch(
+          `${SOCKET_SERVER_URL}/api/inventory`,{
+            method: 'GET',
+            credentials: 'include' // This ensures the cookie is sent with the request
+          } 
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch inventory");
         }
-      };
-
-      fetchInventory();
-    } else {
-      setError("Missing parameters.");
+        const data: InventoryResponse = await response.json();
+        setInventory(data.items);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+        setTimeout(() => setSelectionEnabled(true), 2000);
+      }
+    };
+    fetchInventory();
+    if (inventory.length <= 0) {
+      setError("No Items in Inventory");
       setLoading(false);
     }
   }, []);

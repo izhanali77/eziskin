@@ -286,6 +286,7 @@ import AK47Img from "@/assets/images/icons8-rust-48.png";
 import InventoryPage from "@/pages/inventory";
 import axios from "axios";
 import TradeURLModalComponent from "./tradeUrlModal"; // Import the reusable component
+import { useUserContext } from "@/context/UserContext";
 
 const style = {
   position: "absolute" as "absolute",
@@ -316,8 +317,7 @@ export default function InventoryModal() {
   const [tradeOfferUrl, setTradeOfferUrl] = React.useState<string | null>(null);
   const [tradeUrlModalOpen, setTradeUrlModalOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState<string>(""); // Search query state
-  const params = new URLSearchParams(window.location.search);
-  const username = params.get("username");
+  const { username } = useUserContext();
 
   const SOCKET_SERVER_URL =
     process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
@@ -355,6 +355,9 @@ export default function InventoryModal() {
         {
           itemIds: transformedItems,
           userId: userId,
+        },
+        {
+          withCredentials: true
         }
       );
 

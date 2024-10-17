@@ -281,8 +281,8 @@ const getJackpotHistory = async (req, res) => {
 
 const saveTradeUrl = async (req, res) => {
   try {
-    const { steamID64, tradeUrl } = req.body;
-    console.log(steamID64,tradeUrl);
+    const { tradeUrl } = req.body;
+    const steamID64 = req.user.steamID64
     
     
     // Validate userId and tradeUrl

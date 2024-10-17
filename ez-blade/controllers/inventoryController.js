@@ -6,12 +6,10 @@ const Item = require('../models/itemSchema')
 
 const getInventoryItems = async (req, res) => {
     try {
-      const steamID64 = req.query.steamID64;
-      const appId = parseInt(req.query.appId, 10) || 252490;
-      const contextId = parseInt(req.query.contextId, 10) || 2;
-      console.log("check1");
+      const steamID64 = req.user.steamID64
+      const appId = 252490;
+      const contextId =  2;
       
-  
       if (!steamID64) {
         return res.status(400).json({ error: 'Missing SteamID64 parameter.' });
       }
@@ -71,18 +69,11 @@ const getInventoryItems = async (req, res) => {
         }
       });
   
-      // Wait for all items to be saved
       await Promise.all(itemPromises);
   
-      // Save the updated user with inventory references
       await user.save();
       const userInventory = await User.findOne({steamId: steamID64}).populate('inventory')
-      
-      // console.log(userInventory.inventory.length);
-      // console.log(typeof(userInventory.inventory), typeof(inventory));
-      // console.log(typeof(userInventory.inventory[0].iconUrl),typeof(inventory.items[0].icon_url));
-      
-  
+
       res.json({items:userInventory.inventory, inv:inventory});
   
     } catch (error) {

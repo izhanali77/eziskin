@@ -122,7 +122,9 @@ const JackpotHistory: React.FC = () => {
     const fetchCompletedJackpots = async () => {
       try {
         const response = await axios.get<Jackpot[]>(
-          `${SOCKET_SERVER_URL}/jackpotSystem/history`,
+          `${SOCKET_SERVER_URL}/jackpotSystem/history`, {
+              withCredentials: true
+          }
         ); // Adjust the endpoint if necessary
         console.log(response.data);
 

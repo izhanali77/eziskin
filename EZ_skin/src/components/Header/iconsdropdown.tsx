@@ -14,20 +14,10 @@ import TradeURLModal from "./settings";
 import ContactSupportIcon from "@mui/icons-material/ContactSupport";
 import SupportModal from "./supportmodal";
 import InventoryModal from "./inventoryModal";
-type Props = {
-  user: string;
-  userProfile: string;
-};
+import { useUserContext } from "@/context/UserContext";
 
-export default function AccountSetting({ user, userProfile }: Props) {
-  const handleLogout = () => {
-    localStorage.removeItem("steamID64");
-    localStorage.removeItem("username");
-    setIsLoggedIn(false);
-    setUsername("");
-    setSteamID64("");
-  };
-
+export default function AccountSetting() {
+  const { username, avatar, steamID64 } = useUserContext();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
@@ -38,7 +28,6 @@ export default function AccountSetting({ user, userProfile }: Props) {
   const handleClose = () => {
     setAnchorEl(null);
   };
-
   const handleProfileClick = () => {
     setAnchorEl(null);
     setIsProfileModalOpen(true);
@@ -60,7 +49,7 @@ export default function AccountSetting({ user, userProfile }: Props) {
             aria-haspopup="true"
             aria-expanded={open ? "true" : undefined}
           >
-            <img className="rounded-full h-9 w-9" src={userProfile} alt="" />
+            <img className="rounded-full h-9 w-9" src={avatar} alt="" />
           </IconButton>
         </Tooltip>
       </Box>
@@ -99,9 +88,9 @@ export default function AccountSetting({ user, userProfile }: Props) {
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
         <MenuItem onClick={handleClose}>
-          <img className="rounded-full w-9 h-9" src={userProfile} alt="" />
+          <img className="rounded-full w-9 h-9" src={avatar} alt="" />
           <span className="font-[Poppins] capitalize font-semibold ml-2">
-            {user}
+            {username}
           </span>
         </MenuItem>
         <Divider />
@@ -123,7 +112,7 @@ export default function AccountSetting({ user, userProfile }: Props) {
           </ListItemIcon>
           <InventoryModal />
         </MenuItem> */}
-        <MenuItem onClick={handleLogout}>
+        <MenuItem >
           <ListItemIcon>
             <ContactSupportIcon fontSize="small" />
           </ListItemIcon>
@@ -133,7 +122,6 @@ export default function AccountSetting({ user, userProfile }: Props) {
       <ProfileModal
         open={isProfileModalOpen}
         onClose={handleModalClose}
-        UserProfileLarge={userProfile}
       />
     </React.Fragment>
   );

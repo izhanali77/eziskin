@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import HorizontalWheel from "../wheel/index"; // Ensure correct path
 import TimerBox from "../timer/timer"; // Ensure correct path
 import Modal from "../ModalInventory"; // Import the Modal component
+import ItemBadge from "./itembadge"
 
 // Define environment variable for Socket.IO server URL
 const SOCKET_SERVER_URL =
@@ -393,35 +394,6 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({ participant, total })
   );
 };
 
-// ----------------------
-// ItemBadge Component
-// ----------------------
-
-interface ItemBadgeProps {
-  item: Item;
-}
-
-const ItemBadge: React.FC<ItemBadgeProps> = ({ item }) => {
-  return (
-    <div
-      className="flex items-center bg-gray-600 rounded-md p-1 hover:bg-gray-500 transition-colors duration-200"
-      title={`${item.name} - ${item.price}`}
-    >
-      <Image
-        src={item.iconUrl}
-        alt={item.name}
-        width={32}
-        height={32}
-        className="rounded-md"
-        loading="lazy" // Enable lazy loading for better performance
-      />
-      <div className="ml-2 flex flex-col">
-        <span className="text-xs text-white font-medium truncate w-24">{item.name}</span>
-        <span className="text-xs text-gray-300">{item.price}</span>
-      </div>
-    </div>
-  );
-};
 
 
 

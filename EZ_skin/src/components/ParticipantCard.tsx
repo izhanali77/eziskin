@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import Modal from "../ModalInventory"; // Ensure correct path
-import ItemBadge from "./ItemBadge"; // Ensure correct path
+import Modal from "./ModalInventory";
+import ItemBadge from "./jacpotStatusapifetch/itembadge";
 
 interface Item {
   _id: string;

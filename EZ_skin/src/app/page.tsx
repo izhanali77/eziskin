@@ -174,7 +174,6 @@ export default function HomePage() {
         }}
         className="w-full h-[95vh] overflow-y-hidden flex"
       >
-        {/* Sidebar */}
         <div className="h-[95vh] pt-2 !hidden md:!flex border-r-[1px] border-black items-center flex-col bg-[#2C2C2E] w-10">
           <svg
             width="25px"
@@ -205,12 +204,8 @@ export default function HomePage() {
           </svg>
         </div>
 
-        {/* Chat Component */}
         <Chat />
-
-        {/* Main Content */}
         <div className="w-full overflow-y-auto h-[95vh] md:h-[90vh] md:w-[80%]">
-          {/* Skins Carousel */}
           <div className="w-[90%] mt-8 mx-auto flex gap-3 overflow-x-auto">
             <AnimatePresence initial={false}>
               {allSkins.map((skin) => (
@@ -247,10 +242,8 @@ export default function HomePage() {
             </AnimatePresence>
           </div>
 
-          {/* Jackpot Status */}
           <JackpotStatus participants={participants} roundhash={roundHash}/>
 
-          {/* Jackpot History */}
           <JackpotHistory />
         </div>
       </div>

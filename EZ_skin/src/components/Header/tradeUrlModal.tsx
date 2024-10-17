@@ -28,7 +28,6 @@ export default function TradeURLModalComponent({
   const [tradeURL, setTradeURL] = React.useState("");
   const SOCKET_SERVER_URL =
   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
-  const steamID64 = localStorage.getItem("steamID64");
 
   const handleModalContentClick = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -48,10 +47,12 @@ export default function TradeURLModalComponent({
         const response = await axios.post(
             apiEndpoint,
             {
-              tradeUrl: tradeURL,
-              steamID64: steamID64,
+              tradeUrl: tradeURL
+            },
+            {
+              withCredentials: true
             }
-        );
+          );
 
       if (response.data.success) {
         // Handle successful response

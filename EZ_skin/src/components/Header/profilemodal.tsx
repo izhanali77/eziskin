@@ -1,4 +1,5 @@
 "use client";
+import { useUserContext } from "@/context/UserContext";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import React, { useEffect, useState } from "react";
@@ -21,30 +22,13 @@ const style = {
 type ProfileModalProps = {
   open: boolean;
   onClose: () => void;
-  UserProfileLarge?: string;
 };
 
 export default function ProfileModal({
   open,
   onClose,
-  UserProfileLarge,
 }: ProfileModalProps) {
-  const [username, setUsername] = useState<string>("");
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const usernameFromURL = urlParams.get("username");
-
-    if (usernameFromURL) {
-      localStorage.setItem("username", usernameFromURL);
-      setUsername(usernameFromURL);
-    } else {
-      const storedUsername = localStorage.getItem("username");
-      if (storedUsername) {
-        setUsername(storedUsername);
-      }
-    }
-  }, []);
+  const { username, avatar } = useUserContext();
 
   const handleBoxClick = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
@@ -69,7 +53,7 @@ export default function ProfileModal({
             }}
           >
             <img
-              src={UserProfileLarge}
+              src={avatar}
               className="rounded-full w-32 h-32 border border-white p-1"
               alt="steam.userprofileimg"
             />

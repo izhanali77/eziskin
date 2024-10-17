@@ -6,7 +6,8 @@ const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
 const session = require('express-session');
 const cors = require('cors');
-const axios = require('axios');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const User = require('./models/userSchema');
@@ -15,6 +16,7 @@ const Message = require('./models/messageSchema'); // Import the Message model
 const { getInventory } = require('./utils/getInventory');
 const jackpotRoutes = require('./routes/jackpotRoutes');
 const Jackpot = require('./models/jackpotSchema');
+const isAuth = require('./middleware/isAuth');
 const front_url = 'http://localhost:3000'
 const back_url = 'http://localhost:5000'
 // Initialize the app
@@ -23,6 +25,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
 app.use(
   cors({
     origin: `${front_url}`,
@@ -30,6 +33,17 @@ app.use(
     credentials: true,
   })
 );
+
+// Socket.io setup
+const http = require('http').Server(app);
+const io = require('./socket').init(http, {
+  cors: {
+    origin: `${front_url}`, // Allow only your client application's origin
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', 'DELETE'], // Allowable methods
+    credentials: true, // Optional: if you need cookies or authorization headers
+  },
+});
+
 
 app.use(
   session({
@@ -39,6 +53,7 @@ app.use(
     cookie: { secure: false }, // Set to true if using HTTPS
   })
 );
+
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -69,18 +84,117 @@ passport.use(
   )
 );
 
-// Socket.io setup
-const http = require('http').Server(app);
-const io = require('./socket').init(http, {
-  cors: {
-    origin: `${front_url}`, // Allow only your client application's origin
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', 'DELETE'], // Allowable methods
-    credentials: true, // Optional: if you need cookies or authorization headers
-  },
+
+// Redirect to Steam login
+app.get('/auth/steam', passport.authenticate('steam'));
+
+// Steam authentication callback
+// app.get(
+//   '/auth/steam/return',
+//   passport.authenticate('steam', { failureRedirect: '/' }),
+//   async (req, res) => {
+//     const user = req.user;
+//     const steamID64 = user.id;
+//     const username = user.displayName;
+//     const profile = user.profileUrl;
+//     const avatar = {
+//       small: user.photos[0].value,
+//       medium: user.photos[1].value,
+//       large: user.photos[2].value,
+//     };
+
+//     try {
+//       // Check if user already exists
+//       let existingUser = await User.findOne({ steamId: steamID64 });
+
+//       if (!existingUser) {
+//         // If the user doesn't exist, create a new user
+//         const newUser = new User({
+//           steamId: steamID64,
+//           username: username,
+//           profileUrl: profile,
+//           avatar: avatar,
+//         });
+//         await newUser.save();
+//         console.log(`New user created: ${username}`);
+//       } else {
+//         console.log(`User already exists: ${username}`);
+//       }
+
+//       // Redirect to frontend with user info
+//       const redirectUrl = `${front_url}/?steamID64=${steamID64}&username=${username}&avatar=${JSON.stringify(avatar)}`;
+//       res.redirect(redirectUrl);
+//     } catch (error) {
+//       console.error('Error saving user:', error);
+//       res.redirect('/');
+//     }
+//   }
+// );
+app.get(
+  '/auth/steam/return',
+  passport.authenticate('steam', { failureRedirect: '/' }),
+  async (req, res) => {
+    const user = req.user;
+    const steamID64 = user.id;
+    const username = user.displayName;
+    const profile = user.profileUrl;
+    const avatar = {
+      small: user.photos[0].value,
+      medium: user.photos[1].value,
+      large: user.photos[2].value,
+    };
+
+    try {
+      // Check if user already exists
+      let existingUser = await User.findOne({ steamId: steamID64 });
+
+      if (!existingUser) {
+        // If the user doesn't exist, create a new user
+        const newUser = new User({
+          steamId: steamID64,
+          username: username,
+          profileUrl: profile,
+          avatar: avatar,
+        });
+        await newUser.save();
+        console.log(`New user created: ${username}`);
+      } else {
+        console.log(`User already exists: ${username}`);
+      }
+
+      // Create JWT token
+      const token = jwt.sign(
+        { steamID64, username, avatar }, // Data to encode in JWT
+        "somesecret",          // Secret key to sign the token
+        { expiresIn: '1h' }              // Token expiration
+      );
+
+      // Set JWT token as HTTP-only cookie (ensure `secure: true` is used in production with HTTPS)
+      res.cookie('token', token, {
+        httpOnly: true,
+        maxAge: 3600000, // 1 hour
+        secure: true,     // Only sent over HTTPS
+        sameSite: 'Strict'
+      });
+
+      // Redirect to frontend after setting the cookie (without exposing sensitive data in the URL)
+      res.redirect(`${front_url}`);
+    } catch (error) {
+      console.error('Error saving user:', error);
+      res.redirect('/');
+    }
+  }
+);
+
+app.get('/api/user', isAuth,(req, res) => {
+  try {
+    const user = req.user
+    res.json({ username: user.username, steamID64: user.steamID64, avatar: user.avatar });
+  } catch (error) {
+    return res.status(403).json({ message: 'Invalid token' });
+  }
 });
 
-// Use jackpot routes
-app.use('/jackpotSystem', jackpotRoutes);
 
 app.get('/api/inventory', async (req, res) => {
   try {
@@ -169,53 +283,6 @@ app.get('/api/inventory', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-// Redirect to Steam login
-app.get('/auth/steam', passport.authenticate('steam'));
-
-// Steam authentication callback
-app.get(
-  '/auth/steam/return',
-  passport.authenticate('steam', { failureRedirect: '/' }),
-  async (req, res) => {
-    const user = req.user;
-    const steamID64 = user.id;
-    const username = user.displayName;
-    const profile = user.profileUrl;
-    const avatar = {
-      small: user.photos[0].value,
-      medium: user.photos[1].value,
-      large: user.photos[2].value,
-    };
-
-    try {
-      // Check if user already exists
-      let existingUser = await User.findOne({ steamId: steamID64 });
-
-      if (!existingUser) {
-        // If the user doesn't exist, create a new user
-        const newUser = new User({
-          steamId: steamID64,
-          username: username,
-          profileUrl: profile,
-          avatar: avatar,
-        });
-        await newUser.save();
-        console.log(`New user created: ${username}`);
-      } else {
-        console.log(`User already exists: ${username}`);
-      }
-
-      // Redirect to frontend with user info
-      const redirectUrl = `${front_url}/?steamID64=${steamID64}&username=${username}&avatar=${JSON.stringify(avatar)}`;
-      res.redirect(redirectUrl);
-    } catch (error) {
-      console.error('Error saving user:', error);
-      res.redirect('/');
-    }
-  }
-);
-
 // Use jackpot routes
 app.use('/jackpotSystem', jackpotRoutes);
 
@@ -234,18 +301,9 @@ app.get('/trade-url', (req, res) => {
 });
 
 // Logout route
-app.get('/logout', (req, res, next) => { // Added 'next' to handle errors
-  req.logout(err => {
-    if (err) {
-      return next(err);
-    }
-    req.session.destroy(err => {
-      if (err) {
-        return next(err);
-      }
-      res.redirect(`${front_url}/`); // Redirect to your frontend after logout
-    });
-  });
+app.post('/auth/logout', (req, res) => {
+  res.clearCookie('token'); // Clear the token cookie
+  res.json({ message: 'Logged out' });
 });
 
 // Connect to MongoDB and start the server
