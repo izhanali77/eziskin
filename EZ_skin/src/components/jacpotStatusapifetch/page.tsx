@@ -17,15 +17,6 @@ import Modal from "../ModalInventory"; // Import the Modal component
 const SOCKET_SERVER_URL =
   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
-// Helper function to extract numeric value from a price string (e.g., "12.34 USD" -> 12.34)
-const extractPrice = (priceString: string): number => {
-  const match = priceString.match(/([\d,.]+)/);
-  if (match) {
-    return parseFloat(match[1].replace(/,/g, ""));
-  }
-  return 0;
-};
-
 // ----------------------
 // Type Definitions
 // ----------------------
@@ -106,27 +97,6 @@ interface SpinEventData {
   duration: number; // Spin duration in milliseconds
 }
 
-// Utility to map backend data to frontend Participant structure
-const mapParticipants = (participantsData: ParticipantData[]): Participant[] => {
-  return participantsData.map((participant) => {
-    const user = participant.user;
-    const totalValue = participant.items.reduce((acc, item) => {
-      const price = extractPrice(item.price);
-      return acc + price;
-    }, 0);
-
-    return {
-      id: user._id, // Ensure 'id' is included
-      username: user.username || "Unknown",
-      items: participant.items, // Include items
-      totalValue: totalValue,
-      skinCount: participant.items.length,
-      img: user.avatar.small || "/default-avatar.png",
-      color: participant.color, // Use color from backend
-    };
-  });
-};
-
 // WinnerAnnouncement Styled Component
 const WinnerAnnouncement = styled(motion.div)<{ bgColor: string }>`
   width: 100%;
@@ -185,35 +155,36 @@ const WinnerAnnouncement = styled(motion.div)<{ bgColor: string }>`
 // ----------------------
 
 interface JackpotStatusProps {
+  roundhash: string;
   participants: Participant[];
 }
 
-export default function JackpotStatus({ participants }: JackpotStatusProps) {
+export default function JackpotStatus({ participants, roundhash }: JackpotStatusProps) {
   const [winner, setWinner] = useState<Participant | null>(null);
   const [spinDuration, setSpinDuration] = useState<number>(5000); // Default to 5 seconds
-  const [roundHash, setRoundHash] = useState<string>("");
+  // const [roundHash, setRoundHash] = useState<string>("");
   const [showWinnerAnnouncement, setShowWinnerAnnouncement] = useState(false);
 
   useEffect(() => {
     const socket: Socket = io(SOCKET_SERVER_URL);
 
-    // Fetch initial jackpot data
-    const fetchJackpotData = async () => {
-      try {
-        const response: AxiosResponse<JackpotStatusResponse> = await axios.get(
-          `${SOCKET_SERVER_URL}/jackpotSystem/status`
-        );
-        const participantsData: ParticipantData[] = response.data.participants;
-        setRoundHash(response.data._id);
-      } catch (error: any) {
-        console.error(
-          "Error fetching jackpot data:",
-          error.response ? error.response.data : error.message
-        );
-      }
-    };
+    // // Fetch initial jackpot data
+    // const fetchJackpotData = async () => {
+    //   try {
+    //     const response: AxiosResponse<JackpotStatusResponse> = await axios.get(
+    //       `${SOCKET_SERVER_URL}/jackpotSystem/status`
+    //     );
+    //     const participantsData: ParticipantData[] = response.data.participants;
+    //     setRoundHash(response.data._id);
+    //   } catch (error: any) {
+    //     console.error(
+    //       "Error fetching jackpot data:",
+    //       error.response ? error.response.data : error.message
+    //     );
+    //   }
+    // };
 
-    fetchJackpotData();
+    // fetchJackpotData();
 
     // Listen for round result
     socket.on("roundResult", (data: RoundResult) => {
@@ -231,6 +202,7 @@ export default function JackpotStatus({ participants }: JackpotStatusProps) {
       };
 
       setWinner(winnerParticipant);
+      
     });
 
     // Listen for spin events to synchronize wheel spin across all clients
@@ -318,11 +290,11 @@ export default function JackpotStatus({ participants }: JackpotStatusProps) {
       <div className="w-full">
         <div className="w-[95%] flex flex-wrap justify-center md:justify-start gap-6 mt-7 mx-auto">
           {participants.map((participant) => (
-            <ParticipantCard key={participant.id} participant={participant} />
+            <ParticipantCard key={participant.id} participant={participant} total={totalJackpotValue}/>
           ))}
         </div>
         <p className="text-gray-300 text-[10px] md:text-sm text-center mt-10">
-          Round hash: {roundHash}
+          Round hash: {roundhash}
         </p>
       </div>
 
@@ -349,9 +321,10 @@ export default function JackpotStatus({ participants }: JackpotStatusProps) {
 
 interface ParticipantCardProps {
   participant: Participant;
+  total: number
 }
 
-const ParticipantCard: React.FC<ParticipantCardProps> = ({ participant }) => {
+const ParticipantCard: React.FC<ParticipantCardProps> = ({ participant, total }) => {
   const [showAll, setShowAll] = useState<boolean>(false);
 
   const handleShowAll = () => {
@@ -396,19 +369,26 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({ participant }) => {
               </div>
               <p className="text-[12px] text-white">
                 {participant.skinCount} {participant.skinCount === 1 ? "Skin" : "Skins"} | $
-                {participant.totalValue.toFixed(2)}
+                {participant.totalValue.toFixed(2)} | 
+                {(participant.totalValue/total  * 100).toFixed(2)} %
               </p>
             </div>
           </div>
         )}
       </div>
-      <Modal isOpen={showAll} onClose={handleClose} title={`${participant.username}'s Skins`}>
+      <Modal 
+        isOpen={showAll} 
+        onClose={handleClose} 
+        title={`${participant.username}'s Skins`} 
+        borderColor={participant.color} // Adjust borderWidth as needed
+      >
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 overflow-y-auto max-h-96">
           {participant.items.map((item) => (
             <ItemBadge key={item.assetId} item={item} />
           ))}
         </div>
       </Modal>
+
     </>
   );
 };

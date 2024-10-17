@@ -102,7 +102,7 @@ export default function ProfileModal({
               </div>
             </div>
           </div>
-          <div className="flex gap-x-5 p-5">
+          {/* <div className="flex gap-x-5 p-5">
             <div className="w-1/2">
               <div className="mt-2">
                 <h3 className="font-semibold text-xl text-white">
@@ -136,7 +136,7 @@ export default function ProfileModal({
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
           <div className="w-full p-5 overflow-x-auto">
             <table className="table mx-auto mt-10 text-white">
               <thead>

@@ -108,6 +108,7 @@ const mapParticipants = (participantsData: ParticipantData[]): Participant[] => 
 
 export default function HomePage() {
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [roundHash, setRoundHash] = useState<string>("");
 
   useEffect(() => {
     // Initialize Socket.IO client
@@ -122,12 +123,14 @@ export default function HomePage() {
           `${SOCKET_SERVER_URL}/jackpotSystem/status`
         );
         const participantsData: ParticipantData[] = response.data.participants;
+        const roundHash =  response.data._id
         console.log(participantsData);
 
         const initialParticipants: Participant[] = mapParticipants(participantsData);
         
 
         setParticipants(initialParticipants);
+        setRoundHash(response.data._id);
       } catch (error: any) {
         console.error(
           "Error fetching jackpot data:",
@@ -245,7 +248,7 @@ export default function HomePage() {
           </div>
 
           {/* Jackpot Status */}
-          <JackpotStatus participants={participants} />
+          <JackpotStatus participants={participants} roundhash={roundHash}/>
 
           {/* Jackpot History */}
           <JackpotHistory />

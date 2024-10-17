@@ -2,6 +2,7 @@ const Jackpot = require('./models/jackpotSchema');
 const io = require('./socket');
 const weightedRandomSelection = require('./utils/weightedRandomSelection');
 const { manager } = require('./steamTradeBot'); // Import Steam trade bot manager
+const User = require('./models/userSchema');
 
 /**
  * Timer settings
@@ -178,12 +179,25 @@ async function endRound() {
     const adminItems = totalItems.slice(itemSplitIndex);
     
     // Transfer 90% of items to winner, and keep 10% for the bot
-    await transferWinnings(winnerParticipant.participant.user, winnerItems, adminItems);
+    // await transferWinnings(winnerParticipant.participant.user, winnerItems, adminItems);
 
     // Update the jackpot with the winner
     jackpot.status = 'completed';
     jackpot.winner = winnerParticipant.participant.user._id;
     await jackpot.save();
+
+    const user = await User.findById(winnerParticipant.participant.user._id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    let deposited = user.deposited + winnerParticipant.totalContribution;
+    let totalWon = user.totalWon + jackpot.totalValue;
+    let profit = deposited - totalWon
+    if (totalWon > deposited) {
+      profit = -profit
+    }
+    user.deposited = deposited
+    user.totalWon = totalWon
+    user.profit = profit
+    await user.save();
 
     // Emit the round result to all clients
     io.getIO().emit('roundResult', {

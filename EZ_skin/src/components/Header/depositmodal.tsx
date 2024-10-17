@@ -91,7 +91,7 @@ export default function DepositModel() {
           <ModalSelect />
           <a href="/stripe">
             <button className="mt-3 px-8 py-2 text-white  bg-green-500 hover:bg-green-700 transition hover:translate-y-1 rounded-xl">
-              Deposit
+              hdasdha
             </button>
           </a>
           <div

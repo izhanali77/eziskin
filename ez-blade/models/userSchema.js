@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema({
     large: { type: String },
   },
   inventory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item' }], // Array of item references owned by the user
+  deposited: { type: Number, default: 0 }, // Commission percentage
+  totalWon: { type: Number, default: 0 }, // Commission percentage
+  profit: { type: Number, default: 0 }, // Commission percentage
   createdAt: { type: Date, default: Date.now }, // Timestamp for when the user registered
 });
 

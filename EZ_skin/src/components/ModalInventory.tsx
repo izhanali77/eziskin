@@ -7,9 +7,10 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  borderColor?: string; // Add borderColor prop
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, borderColor }) => {
   // Close the modal when the Escape key is pressed
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -43,7 +44,11 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="bg-gray-800 rounded-lg p-6 max-w-3xl w-full relative">
+      <div
+        className={`bg-gray-800 rounded-lg p-6 max-w-3xl w-full relative ${borderColor ? 'border border-t-0 border-b-0 border-r-4 border-l-0 ' : '' }`}
+        style={borderColor ? { borderColor, borderStyle: 'solid' } : {}}
+
+      >
         <button
           className="absolute top-2 right-2 text-white text-2xl font-bold hover:text-gray-400 focus:outline-none"
           onClick={onClose}

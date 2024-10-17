@@ -172,7 +172,7 @@ const JackpotHistory: React.FC = () => {
       <p className="text-center text-gray-500">No completed jackpots found.</p>
     );
   }
-
+  
   return (
     <div className="w-full px-4 md:px-8 lg:px-16 py-8">
       <div className="border-t-2 border-gray-900 w-full text-center mb-10 ">
@@ -267,9 +267,16 @@ const JackpotHistory: React.FC = () => {
                           </p>
                           <p className="text-gray-300">
                             <strong>Created At:</strong>{" "}
-                            {new Date(
-                              selectedJackpot.createdAt,
-                            ).toLocaleString()}
+                            {new Date(selectedJackpot.createdAt).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: 'numeric',
+                              second: 'numeric',
+                              hour12: true,
+                              timeZone: 'UTC' // Force display in UTC
+                            })}
                           </p>
                         </div>
                       </div>
