@@ -36,12 +36,8 @@ const SteamLogin: React.FC = () => {
         }
       };
     
-      const timer = setTimeout(() => {
         fetchUserInfo();
-      }, 5000); // 2000 milliseconds = 2 seconds
     
-      // Cleanup the timer on component unmount
-      return () => clearTimeout(timer);
     }, []);
     
 
