@@ -88,48 +88,6 @@ passport.use(
 // Redirect to Steam login
 app.get('/auth/steam', passport.authenticate('steam'));
 
-// Steam authentication callback
-// app.get(
-//   '/auth/steam/return',
-//   passport.authenticate('steam', { failureRedirect: '/' }),
-//   async (req, res) => {
-//     const user = req.user;
-//     const steamID64 = user.id;
-//     const username = user.displayName;
-//     const profile = user.profileUrl;
-//     const avatar = {
-//       small: user.photos[0].value,
-//       medium: user.photos[1].value,
-//       large: user.photos[2].value,
-//     };
-
-//     try {
-//       // Check if user already exists
-//       let existingUser = await User.findOne({ steamId: steamID64 });
-
-//       if (!existingUser) {
-//         // If the user doesn't exist, create a new user
-//         const newUser = new User({
-//           steamId: steamID64,
-//           username: username,
-//           profileUrl: profile,
-//           avatar: avatar,
-//         });
-//         await newUser.save();
-//         console.log(`New user created: ${username}`);
-//       } else {
-//         console.log(`User already exists: ${username}`);
-//       }
-
-//       // Redirect to frontend with user info
-//       const redirectUrl = `${front_url}/?steamID64=${steamID64}&username=${username}&avatar=${JSON.stringify(avatar)}`;
-//       res.redirect(redirectUrl);
-//     } catch (error) {
-//       console.error('Error saving user:', error);
-//       res.redirect('/');
-//     }
-//   }
-// );
 app.get(
   '/auth/steam/return',
   passport.authenticate('steam', { failureRedirect: '/' }),
@@ -161,6 +119,8 @@ app.get(
       } else {
         console.log(`User already exists: ${username}`);
       }
+      // console.log(req);
+      
 
       // Create JWT token
       const token = jwt.sign(

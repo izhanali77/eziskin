@@ -17,7 +17,7 @@ import InventoryModal from "./inventoryModal";
 import { useUserContext } from "@/context/UserContext";
 
 export default function AccountSetting() {
-  const { username, avatar, steamID64 } = useUserContext();
+  const { username, avatar } = useUserContext();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
@@ -125,16 +125,4 @@ export default function AccountSetting() {
       />
     </React.Fragment>
   );
-}
-
-function setIsLoggedIn(isLoggedIn: boolean) {
-  console.log("Setting isLoggedIn to", isLoggedIn);
-}
-
-function setUsername(username: string) {
-  console.log("Setting username to", username);
-}
-
-function setSteamID64(steamID64: string) {
-  console.log("Setting steamID64 to", steamID64);
 }

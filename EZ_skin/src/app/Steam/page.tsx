@@ -53,7 +53,6 @@ const SteamLogin: React.FC = () => {
       setIsLoggedIn(false);
       setUsername("");
       setAvatar("");
-      setIsLoggedIn(false);
     } catch (error) {
       console.error("Error logging out:", error);
     }

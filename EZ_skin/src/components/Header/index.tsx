@@ -9,40 +9,15 @@ import DepositModel from "./depositmodal";
 import React, { useEffect, useState } from "react";
 // import SkinsData from "./skinsdata";
 import InventoryModal from "./inventoryModal";
-import { UserProvider, useUserContext } from "@/context/UserContext";
+import { useUserContext } from "@/context/UserContext";
 
 export default function Example() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-  const { username, avatar, steamID64, isLoggedIn } = useUserContext();
-  // useEffect(() => {
-  //   const urlParams = new URLSearchParams(window.location.search);
-  //   const steamIDFromURL = urlParams.get("steamID64");
-  //   const usernameFromURL = urlParams.get("username");
-  //   const avatarString = urlParams.get("avatar");
-
-  //   if (steamIDFromURL && usernameFromURL) {
-  //     localStorage.setItem("steamID64", steamIDFromURL);
-  //     localStorage.setItem("username", usernameFromURL);
-  //     setIsLoggedIn(true);
-  //   } else {
-  //     const storedSteamID64 = localStorage.getItem("steamID64");
-  //     const storedUsername = localStorage.getItem("username");
-
-  //     if (storedSteamID64 && storedUsername) {
-  //       setIsLoggedIn(true);
-  //     }
-  //   }
-  // }, []);
-  // const handleLogout = () => {
-  //   localStorage.removeItem("steamID64");
-  //   localStorage.removeItem("username");
-  //   setIsLoggedIn(false);
-  // };
+  const { isLoggedIn } = useUserContext()
   return (
-    <UserProvider>
     <header className="bg-[#3D3A40]">
       {/* <BasicModal
         handleOpen={handleOpen}
@@ -98,7 +73,7 @@ export default function Example() {
       <Dialog
         className="lg:!hidden"
         open={mobileMenuOpen}
-        onClose={setMobileMenuOpen} 
+        onClose={setMobileMenuOpen}
       >
         <div className="fixed inset-0 z-10" />
 
@@ -220,6 +195,5 @@ export default function Example() {
         </DialogPanel>
       </Dialog>
     </header>
-    </UserProvider>
   );
 }

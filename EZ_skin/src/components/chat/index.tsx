@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, FormEvent } from "react";
 import { io, Socket } from "socket.io-client";
 import Image from "next/image";
 import img from "@/assets/images/icon.jpg"; // Update the path if necessary
+import { useUserContext } from "@/context/UserContext";
 
 // Define the structure of a chat message
 interface Message {
@@ -24,30 +25,7 @@ const Chat: React.FC = () => {
   const [inputMessage, setInputMessage] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const socket = useRef<Socket | null>(null);
-
-  const [username, setUsername] = useState<string | null>(null);
-  const [avatar, setAvatar] = useState<Avatar | null>(null);
-
-  // Extract URL parameters on the client-side
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      const usernameFromURL = urlParams.get("username");
-      const avatarString = urlParams.get("avatar");
-
-      setUsername(usernameFromURL);
-
-      if (avatarString) {
-        try {
-          const parsedAvatar: Avatar = JSON.parse(avatarString);
-          setAvatar(parsedAvatar);
-        } catch (error) {
-          console.error("Failed to parse avatar:", error);
-          setAvatar(null);
-        }
-      }
-    }
-  }, []);
+  const { username, avatar } = useUserContext()
 
   // Initialize Socket.IO client
   useEffect(() => {
@@ -94,7 +72,7 @@ const Chat: React.FC = () => {
     const message: Message = {
       username: username,
       text: inputMessage,
-      avatar: avatar.small,
+      avatar: avatar,
       timestamp: new Date().toISOString(),
     };
 
