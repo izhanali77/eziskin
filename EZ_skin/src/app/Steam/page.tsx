@@ -10,37 +10,40 @@ const SteamLogin: React.FC = () => {
   const SOCKET_SERVER_URL =
     process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io";
 
-  useEffect(() => {
-    // Fetch user info securely from the server
-    const fetchUserInfo = async () => {
-      try {
-        console.log(SOCKET_SERVER_URL);
-        
-        const response = await fetch(`${SOCKET_SERVER_URL}/api/user`, {
-          method: 'GET',
-          credentials: 'include' // This ensures the cookie is sent with the request
-        });
-        
-
-        if (response.ok) {
-          const userData = await response.json();
-          setUsername(userData.username);
-          setAvatar(userData.avatar.large);
-          setSteamId64(userData.steamID64);
-          setIsLoggedIn(true);
-          console.log(userData);
-          
-          
-        } else {
-          console.log("User is not logged in.");
+    useEffect(() => {
+      // Fetch user info securely from the server
+      const fetchUserInfo = async () => {
+        try {
+          console.log(SOCKET_SERVER_URL);
+    
+          const response = await fetch(`${SOCKET_SERVER_URL}/api/user`, {
+            method: 'GET',
+            credentials: 'include' // This ensures the cookie is sent with the request
+          });
+    
+          if (response.ok) {
+            const userData = await response.json();
+            setUsername(userData.username);
+            setAvatar(userData.avatar.large);
+            setSteamId64(userData.steamID64);
+            setIsLoggedIn(true);
+            console.log(userData);
+          } else {
+            console.log("User is not logged in.");
+          }
+        } catch (error) {
+          console.error("Error fetching user info:", error);
         }
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-      }
-    };
-
-    fetchUserInfo();
-  }, []);
+      };
+    
+      const timer = setTimeout(() => {
+        fetchUserInfo();
+      }, 1000); // 2000 milliseconds = 2 seconds
+    
+      // Cleanup the timer on component unmount
+      return () => clearTimeout(timer);
+    }, []);
+    
 
   const handleLogin = () => {
     window.location.href = `${SOCKET_SERVER_URL}/auth/steam`;
