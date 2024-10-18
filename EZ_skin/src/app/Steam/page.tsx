@@ -14,8 +14,8 @@ const SteamLogin: React.FC = () => {
       // Fetch user info securely from the server
       const fetchUserInfo = async () => {
         try {
-          console.log(SOCKET_SERVER_URL);
-    
+          console.log("SOCKET_SERVER_URL",document.cookie);
+          
           const response = await fetch(`${SOCKET_SERVER_URL}/api/user`, {
             method: 'GET',
             credentials: 'include' // This ensures the cookie is sent with the request
@@ -36,12 +36,8 @@ const SteamLogin: React.FC = () => {
         }
       };
     
-      const timer = setTimeout(() => {
         fetchUserInfo();
-      }, 5000); // 2000 milliseconds = 2 seconds
     
-      // Cleanup the timer on component unmount
-      return () => clearTimeout(timer);
     }, []);
     
 
