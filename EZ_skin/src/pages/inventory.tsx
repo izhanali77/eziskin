@@ -26,7 +26,7 @@ const InventoryPage: React.FC<{
   const [selectionEnabled, setSelectionEnabled] = useState<boolean>(false);
   const [selectedItems, setSelectedItems] = useState<InventoryItem[]>([]);
   const SOCKET_SERVER_URL =
-  process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
+  process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io";
 
   // Maximum number of items that can be selected
   const MAX_SELECTED_ITEMS = 20;
@@ -218,7 +218,7 @@ export default InventoryPage;
 //     const appId = params.get("appId") || "252490"; // Default appId if not provided
 //     const contextId = params.get("contextId") || "2"; // Default contextId if not provided
 //     const SOCKET_SERVER_URL =
-//       process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
+//       process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io";
 
 //     if (steamID64) {
 //       const fetchInventory = async () => {

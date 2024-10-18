@@ -8,7 +8,7 @@ const SteamLogin: React.FC = () => {
   const { isLoggedIn } = useUserContext()
   const { setUsername, setAvatar, setSteamId64, setIsLoggedIn } = useUserContext();
   const SOCKET_SERVER_URL =
-    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
+    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io";
 
   useEffect(() => {
     // Fetch user info securely from the server
