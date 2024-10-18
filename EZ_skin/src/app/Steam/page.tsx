@@ -14,7 +14,9 @@ const SteamLogin: React.FC = () => {
     // Fetch user info securely from the server
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/user`, {
+        console.log(SOCKET_SERVER_URL);
+        
+        const response = await fetch(`${SOCKET_SERVER_URL}/api/user`, {
           method: 'GET',
           credentials: 'include' // This ensures the cookie is sent with the request
         });

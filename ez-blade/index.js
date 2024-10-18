@@ -119,7 +119,7 @@ app.get(
       } else {
         console.log(`User already exists: ${username}`);
       }
-      // console.log(req);
+      console.log(res);
       
 
       // Create JWT token
