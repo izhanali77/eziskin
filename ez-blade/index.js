@@ -17,8 +17,8 @@ const { getInventory } = require('./utils/getInventory');
 const jackpotRoutes = require('./routes/jackpotRoutes');
 const Jackpot = require('./models/jackpotSchema');
 const isAuth = require('./middleware/isAuth');
-const front_url = 'http://localhost:3000'
-const back_url = 'http://localhost:5000'
+const front_url = process.env.FRONTEND_URL
+const back_url = process.env.BACKEND_URL
 // Initialize the app
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -131,10 +131,10 @@ app.get(
 
       // Set JWT token as HTTP-only cookie (ensure `secure: true` is used in production with HTTPS)
       res.cookie('token', token, {
-        // httpOnly: true,
+        httpOnly: true,
         maxAge: 3600000, // 1 hour
-        // secure: true,     // Only sent over HTTPS
-        // sameSite: 'Strict'
+        secure: true,     // Only sent over HTTPS
+        sameSite: 'Strict'
       });
 
       // Redirect to frontend after setting the cookie (without exposing sensitive data in the URL)
@@ -156,11 +156,13 @@ app.get('/api/user', isAuth,(req, res) => {
 });
 
 
-app.get('/api/inventory', async (req, res) => {
+app.get('/api/inventory', isAuth, async (req, res) => {
   try {
-    const steamID64 = req.query.steamID64;
-    const appId = parseInt(req.query.appId, 10) || 252490;
-    const contextId = parseInt(req.query.contextId, 10) || 2;
+    console.log(req.user.steamID64);
+    
+    const steamID64 = req.user.steamID64;
+    const appId =  252490;
+    const contextId =  2;
 
     if (!steamID64) {
       return res.status(400).json({ error: 'Missing SteamID64 parameter.' });
@@ -233,7 +235,8 @@ app.get('/api/inventory', async (req, res) => {
       user.inventory.push(...newInventoryItemIds);
       await user.save();
     }
-
+    console.log("noman");
+    
     // Return the updated user's inventory
     const userInventory = await User.findOne({ steamId: steamID64 }).populate('inventory');
     res.json({ items: userInventory.inventory });

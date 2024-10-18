@@ -10,7 +10,7 @@ router.post('/join', isAuth, jackpotController.joinJackpot);
 router.get('/status', jackpotController.getJackpotStatus);
 router.get('/history', jackpotController.getJackpotHistory);
 router.post('/save-trade-url', isAuth, jackpotController.saveTradeUrl);
-
+router.get("/api/user/statistics", jackpotController.getUserStatistics);
 
 
 module.exports = router;

@@ -307,11 +307,62 @@ const saveTradeUrl = async (req, res) => {
   }
 };
 
+
+const getUserStatistics = (req, res) => {
+  // Sample dummy data to simulate database response
+  const userStatistics = {
+    deposited: 1500.50,
+    totalWon: 3200.75,
+    profit: 1700.25,
+    recentWinnings: [
+      {
+        winner: "User123",
+        amount: "$500.00",
+        chance: "25%",
+        gamemode: "Classic",
+        winningTrade: "Trade ID 456"
+      },
+      {
+        winner: "User456",
+        amount: "$300.00",
+        chance: "15%",
+        gamemode: "Speed",
+        winningTrade: "Trade ID 789"
+      },
+      {
+        winner: "User789",
+        amount: "$200.00",
+        chance: "10%",
+        gamemode: "Lucky Draw",
+        winningTrade: "Trade ID 123"
+      },
+      {
+        winner: "User101",
+        amount: "$150.00",
+        chance: "12%",
+        gamemode: "Challenge",
+        winningTrade: "Trade ID 987"
+      },
+      {
+        winner: "User202",
+        amount: "$100.00",
+        chance: "5%",
+        gamemode: "Event",
+        winningTrade: "Trade ID 654"
+      }
+    ]
+  };
+
+  // Send the response back to the client
+  res.status(200).json(userStatistics);
+};
+
 module.exports = {
   joinJackpot,
   getJackpotStatus,
   getJackpotHistory,
-  saveTradeUrl
+  saveTradeUrl,
+  getUserStatistics
 };
 
 

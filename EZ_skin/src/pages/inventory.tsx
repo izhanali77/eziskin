@@ -25,6 +25,8 @@ const InventoryPage: React.FC<{
   const [showMessage, setShowMessage] = useState<string | null>(null);
   const [selectionEnabled, setSelectionEnabled] = useState<boolean>(false);
   const [selectedItems, setSelectedItems] = useState<InventoryItem[]>([]);
+
+  // Maximum number of ite  
   const SOCKET_SERVER_URL =
   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io";
 
@@ -45,6 +47,11 @@ const InventoryPage: React.FC<{
           throw new Error("Failed to fetch inventory");
         }
         const data: InventoryResponse = await response.json();
+        if (data.items.length <= 0) {
+          setError("No Items in Inventory");
+          setLoading(false);
+        }
+        
         setInventory(data.items);
       } catch (err: any) {
         setError(err.message);
@@ -54,10 +61,7 @@ const InventoryPage: React.FC<{
       }
     };
     fetchInventory();
-    if (inventory.length <= 0) {
-      setError("No Items in Inventory");
-      setLoading(false);
-    }
+
   }, []);
 
   const handleItemClick = (item: InventoryItem) => {
@@ -219,30 +223,7 @@ export default InventoryPage;
 //     const contextId = params.get("contextId") || "2"; // Default contextId if not provided
 //     const SOCKET_SERVER_URL =
 //       process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io";
-
-//     if (steamID64) {
-//       const fetchInventory = async () => {
-//         try {
-//           const response = await fetch(
-//             `${SOCKET_SERVER_URL}/api/inventory?steamID64=${steamID64}&appId=${appId}&contextId=${contextId}`,
-//           );
-//           if (!response.ok) {
-//             throw new Error("Failed to fetch inventory");
-//           }
-//           const data: InventoryResponse = await response.json();
-//           setInventory(data.items);
-//           // console.log(data.inv);
-//         } catch (err: any) {
-//           setError(err.message);
-//         } finally {
-//           setLoading(false);
-//           // Enable selection after 5 seconds
-//           setTimeout(() => setSelectionEnabled(true), 2000);
-//         }
-//       };
-
-//       fetchInventory();
-//     } else {
+// {
 //       setError("Missing parameters.");
 //       setLoading(false);
 //     }
