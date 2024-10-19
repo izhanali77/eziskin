@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
   deposited: { type: Number, default: 0 }, // Commission percentage
   totalWon: { type: Number, default: 0 }, // Commission percentage
   profit: { type: Number, default: 0 }, // Commission percentage
+  token: { type: String }, // Steam profile URL
   createdAt: { type: Date, default: Date.now }, // Timestamp for when the user registered
 });
 

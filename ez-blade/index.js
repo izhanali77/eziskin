@@ -87,7 +87,6 @@ passport.use(
 
 // Redirect to Steam login
 app.get('/auth/steam', passport.authenticate('steam'));
-
 app.get(
   '/auth/steam/return',
   passport.authenticate('steam', { failureRedirect: '/' }),
@@ -101,7 +100,12 @@ app.get(
       medium: user.photos[1].value,
       large: user.photos[2].value,
     };
-
+          // Create JWT token
+    const token =  jwt.sign(
+      { steamID64, username, avatar }, // Data to encode in JWT
+      "somesecret",          // Secret key to sign the token
+      { expiresIn: '1h' }              // Token expiration
+    );
     try {
       // Check if user already exists
       let existingUser = await User.findOne({ steamId: steamID64 });
@@ -113,24 +117,19 @@ app.get(
           username: username,
           profileUrl: profile,
           avatar: avatar,
+          token: token
         });
         await newUser.save();
         console.log(`New user created: ${username}`);
       } else {
+        existingUser.token = token
+        await existingUser.save();
         console.log(`User already exists: ${username}`);
       }
-      console.log(res);
+      // console.log(res);
       
-
-      // Create JWT token
-      const token = jwt.sign(
-        { steamID64, username, avatar }, // Data to encode in JWT
-        "somesecret",          // Secret key to sign the token
-        { expiresIn: '1h' }              // Token expiration
-      );
-
-      // Set JWT token as HTTP-only cookie (ensure `secure: true` is used in production with HTTPS)
-      res.cookie('token', token, {
+      // // Set JWT token as HTTP-only cookie (ensure `secure: true` is used in production with HTTPS)
+      res.cookie('FBI', existingUser._id, {
         httpOnly: true,
         maxAge: 3600000, // 1 hour
         secure: true,     // Only sent over HTTPS
@@ -146,6 +145,64 @@ app.get(
   }
 );
 
+// app.get(
+//   '/auth/steam/return',
+//   passport.authenticate('steam', { failureRedirect: '/' }),
+//   async (req, res) => {
+//     const user = req.user;
+//     const steamID64 = user.id;
+//     const username = user.displayName;
+//     const profile = user.profileUrl;
+//     const avatar = {
+//       small: user.photos[0].value,
+//       medium: user.photos[1].value,
+//       large: user.photos[2].value,
+//     };
+
+//     try {
+//       // Check if user already exists
+//       let existingUser = await User.findOne({ steamId: steamID64 });
+
+//       if (!existingUser) {
+//         // If the user doesn't exist, create a new user
+//         const newUser = new User({
+//           steamId: steamID64,
+//           username: username,
+//           profileUrl: profile,
+//           avatar: avatar,
+//         });
+//         await newUser.save();
+//         console.log(`New user created: ${username}`);
+//       } else {
+//         console.log(`User already exists: ${username}`);
+//       }
+//       console.log(res);
+      
+
+//       // Create JWT token
+//       const token = jwt.sign(
+//         { steamID64, username, avatar }, // Data to encode in JWT
+//         "somesecret",          // Secret key to sign the token
+//         { expiresIn: '1h' }              // Token expiration
+//       );
+
+//       // Set JWT token as HTTP-only cookie (ensure `secure: true` is used in production with HTTPS)
+//       res.cookie('token', token, {
+//         httpOnly: true,
+//         maxAge: 3600000, // 1 hour
+//         secure: true,     // Only sent over HTTPS
+//         sameSite: 'Strict'
+//       });
+
+//       // Redirect to frontend after setting the cookie (without exposing sensitive data in the URL)
+//       res.redirect(`${front_url}`);
+//     } catch (error) {
+//       console.error('Error saving user:', error);
+//       res.redirect('/');
+//     }
+//   }
+// );
+
 app.get('/api/user', isAuth,(req, res) => {
   try {
     const user = req.user
@@ -154,6 +211,7 @@ app.get('/api/user', isAuth,(req, res) => {
     return res.status(403).json({ message: 'Invalid token' });
   }
 });
+
 
 
 app.get('/api/inventory', isAuth, async (req, res) => {
