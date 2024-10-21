@@ -123,6 +123,7 @@ app.get('/auth/steam', (req, res, next) => {
           medium: user.photos[1].value,
           large: user.photos[2].value,
         };
+        let userID;
     
     
         // Create JWT token
@@ -131,7 +132,7 @@ app.get('/auth/steam', (req, res, next) => {
           "somesecret",
           { expiresIn: '1h' }
         );
-    
+        
         try {
           // Check if user already exists
           let existingUser = await User.findOne({ steamId: steamID64 });
@@ -144,15 +145,17 @@ app.get('/auth/steam', (req, res, next) => {
               token: token,
             });
             await newUser.save();
+            userID = newUser._id
             console.log(`New user created: ${username}`);
           } else {
             existingUser.token = token;
             await existingUser.save();
+            userID = existingUser._id
             console.log(`User already exists: ${username}`);
           }
     
           // Set JWT token as a cookie
-          res.cookie('FBI', existingUser._id, {
+          res.cookie('FBI', userID, {
             maxAge: 3600000,
             secure: true,  // HTTPS only
             sameSite: 'Strict'

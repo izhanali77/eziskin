@@ -11,33 +11,33 @@ const SteamLogin: React.FC = () => {
     process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
     
     useEffect(() => {
-      // Fetch user info securely from the server
       const fetchUserInfo = async () => {
         try {
-          
-          
+          console.log("Before fetch:", document.cookie); // Log cookies before fetching
+    
           const response = await fetch(`${SOCKET_SERVER_URL}/api/user`, {
             method: 'GET',
-            credentials: 'include' // This ensures the cookie is sent with the request
+            credentials: 'include' // Ensures the cookie is sent with the request
           });
-          console.log("SOCKET_SERVER_URL",document.cookie);
+    
+          console.log("Response Status:", response.status); // Log response status
+    
           if (response.ok) {
             const userData = await response.json();
             setUsername(userData.username);
             setAvatar(userData.avatar.large);
             setSteamId64(userData.steamID64);
             setIsLoggedIn(true);
-            console.log(userData);
+            console.log("User data:", userData);
           } else {
-            console.log("User is not logged in.");
+            console.log("User is not logged in or error occurred.");
           }
         } catch (error) {
           console.error("Error fetching user info:", error);
         }
       };
     
-        fetchUserInfo();
-    
+      fetchUserInfo();
     }, []);
     
 
@@ -107,7 +107,7 @@ const SteamLogin: React.FC = () => {
 
 
   const handleLogin = () => {
-
+    
     window.location.href = `${SOCKET_SERVER_URL}/auth/steam`;
   };
 
