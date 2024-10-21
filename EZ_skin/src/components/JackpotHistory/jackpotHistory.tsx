@@ -115,7 +115,7 @@ const JackpotHistory: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedJackpot, setSelectedJackpot] = useState<Jackpot | null>(null);
   const SOCKET_SERVER_URL =
-    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io";
+    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
   // Fetch completed jackpots from the backend
   useEffect(() => {

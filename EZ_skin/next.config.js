@@ -52,6 +52,7 @@ const nextConfig = {
   images: {
     domains: ["avatars.steamstatic.com", "steamcommunity-a.akamaihd.net"], // Add the allowed hostname(s) here
   },
+  
 };
 
 module.exports = nextConfig;

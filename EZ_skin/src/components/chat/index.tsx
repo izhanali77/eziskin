@@ -33,7 +33,7 @@ const Chat: React.FC = () => {
 
     // Replace with your actual Socket.IO server URL or use environment variables
     const socketURL =
-      process.env.NEXT_PUBLIC_SOCKET_URL || "https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io/chat";
+      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000/chat";
     socket.current = io(socketURL);
 
     // Listen for initial messages
@@ -158,7 +158,7 @@ export default Chat;
 
 //   useEffect(() => {
 //     // Connect to the chat namespace
-//     socket.current = io('https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io/chat'); // Note the '/chat' namespace
+//     socket.current = io('http://localhost:5000/chat'); // Note the '/chat' namespace
 
 //     // Listen for initial messages
 //     socket.current.on('initialMessages', (msgs) => {

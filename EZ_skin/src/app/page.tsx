@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from "framer-motion"; // Import motion and An
 
 // Define environment variable for Socket.IO server URL
 const SOCKET_SERVER_URL =
-  process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io";
+  process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
 // Helper function to extract numeric value from a price string (e.g., "12.34 USD" -> 12.34)
 const extractPrice = (priceString: string): number => {

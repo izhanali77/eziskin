@@ -39,7 +39,7 @@
 //   const [tradeUrlModalOpen, setTradeUrlModalOpen] = React.useState(false); // New state variable
 
 //   const SOCKET_SERVER_URL =
-//     process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io";
+//     process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
 //   const handleOpen = (event: React.MouseEvent) => {
 //     event.stopPropagation(); // Prevent event propagation
@@ -320,7 +320,7 @@ export default function InventoryModal() {
   const { username } = useUserContext();
 
   const SOCKET_SERVER_URL =
-    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-4d69ec6f-9dfc-4ed7-9ca8-01cf09024c96.cleverapps.io";
+    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
   const handleOpen = (event: React.MouseEvent) => {
     event.stopPropagation();
