@@ -20,6 +20,7 @@ const SteamLogin: React.FC = () => {
             credentials: 'include' // Ensures the cookie is sent with the request
           });
     
+          
           console.log("Response Status:", response.status); // Log response status
     
           if (response.ok) {
