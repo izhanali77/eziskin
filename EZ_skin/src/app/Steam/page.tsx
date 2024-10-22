@@ -2,55 +2,88 @@
 import React, { useEffect } from "react";
 import AccountSetting from "@/components/Header/iconsdropdown";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { useUserContext } from '@/context/UserContext';
+import { useUserContext } from "@/context/UserContext";
+import { useSearchParams, useRouter } from "next/navigation";
 
 const SteamLogin: React.FC = () => {
-  const { isLoggedIn, setUsername, setAvatar, setSteamId64, setIsLoggedIn } = useUserContext();
-  const SOCKET_SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
+  const {
+    isLoggedIn,
+    setUsername,
+    setAvatar,
+    setSteamId64,
+    setIsLoggedIn,
+  } = useUserContext();
+
+  const SOCKET_SERVER_URL =
+    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
+
+  const searchParams = useSearchParams();
+  const router = useRouter(); // Router for redirecting after login
 
   useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const response = await fetch(`${SOCKET_SERVER_URL}/api/user`, {
-          method: 'GET',
-          credentials: 'include', // Ensures the cookie is sent with the request
-        });
-
-        if (response.ok) {
-          const userData = await response.json();
-          console.log("hello",userData);
-          
-          // setUsername(userData.username);
-          // setAvatar(userData.avatar.large);
-          // setSteamId64(userData.steamID64);
-          // setIsLoggedIn(true);
-        } else {
-          console.log("User is not logged in or error occurred.");
-        }
-      } catch (error) {
-        console.error("Error fetching user info:", error);
+    if (searchParams) {
+      const authCode = searchParams.get("code");
+      if (authCode) {
+        exchangeAuthCodeForJWT(authCode);
       }
-    };
+    }
+  }, [searchParams]);
 
-    fetchUserInfo();
-  }, []);
+  const exchangeAuthCodeForJWT = async (code: string) => {
+    try {
+      const response = await fetch(`${SOCKET_SERVER_URL}/auth/exchange`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+
+      if (response.ok) {
+        const { token } = await response.json();
+        localStorage.setItem("jwtToken", token); // Store JWT in localStorage
+        fetchUserInfo(token);
+      } else {
+        console.log("Failed to exchange auth code for JWT.");
+      }
+    } catch (error) {
+      console.error("Error exchanging auth code for JWT:", error);
+    }
+  };
+
+  const fetchUserInfo = async (token: string) => {
+    try {
+      const response = await fetch(`${SOCKET_SERVER_URL}/api/user`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUsername(userData.username);
+        setAvatar(userData.avatar.large);
+        setSteamId64(userData.steamID64);
+        setIsLoggedIn(true);
+
+        // Redirect to home page after successful login
+        router.replace("/"); // Replace the URL after login to remove auth-callback
+      } else {
+        console.log("User is not logged in or error occurred.");
+      }
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+    }
+  };
 
   const handleLogin = () => {
     window.location.href = `${SOCKET_SERVER_URL}/auth/steam`;
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch(`${SOCKET_SERVER_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include", // Include cookie to ensure server knows the user
-      });
-      setIsLoggedIn(false);
-      setUsername("");
-      setAvatar("");
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("jwtToken"); // Remove JWT on logout
+    setIsLoggedIn(false);
+    setUsername("");
+    setAvatar("");
   };
 
   return (
@@ -75,6 +108,92 @@ const SteamLogin: React.FC = () => {
 };
 
 export default SteamLogin;
+
+
+
+
+
+
+
+
+
+// "use client";
+// import React, { useEffect } from "react";
+// import AccountSetting from "@/components/Header/iconsdropdown";
+// import LogoutIcon from "@mui/icons-material/Logout";
+// import { useUserContext } from '@/context/UserContext';
+
+// const SteamLogin: React.FC = () => {
+//   const { isLoggedIn, setUsername, setAvatar, setSteamId64, setIsLoggedIn } = useUserContext();
+//   const SOCKET_SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
+
+//   useEffect(() => {
+//     const fetchUserInfo = async () => {
+//       try {
+//         const response = await fetch(`${SOCKET_SERVER_URL}/api/user`, {
+//           method: 'GET',
+//           credentials: 'include', // Ensures the cookie is sent with the request
+//         });
+
+//         if (response.ok) {
+//           const userData = await response.json();
+//           console.log("hello",userData);
+          
+//           // setUsername(userData.username);
+//           // setAvatar(userData.avatar.large);
+//           // setSteamId64(userData.steamID64);
+//           // setIsLoggedIn(true);
+//         } else {
+//           console.log("User is not logged in or error occurred.");
+//         }
+//       } catch (error) {
+//         console.error("Error fetching user info:", error);
+//       }
+//     };
+
+//     fetchUserInfo();
+//   }, []);
+
+//   const handleLogin = () => {
+//     window.location.href = `${SOCKET_SERVER_URL}/auth/steam`;
+//   };
+
+//   const handleLogout = async () => {
+//     try {
+//       await fetch(`${SOCKET_SERVER_URL}/auth/logout`, {
+//         method: "POST",
+//         credentials: "include", // Include cookie to ensure server knows the user
+//       });
+//       setIsLoggedIn(false);
+//       setUsername("");
+//       setAvatar("");
+//     } catch (error) {
+//       console.error("Error logging out:", error);
+//     }
+//   };
+
+//   return (
+//     <div>
+//       {!isLoggedIn ? (
+//         <button id="loginButton" onClick={handleLogin}>
+//           <img
+//             src="https://community.akamai.steamstatic.com/public/images/signinthroughsteam/sits_01.png"
+//             alt="steam login"
+//           />
+//         </button>
+//       ) : (
+//         <div className="flex gap-x-8 items-center">
+//           <AccountSetting />
+//           <button id="logoutButton" onClick={handleLogout}>
+//             <LogoutIcon htmlColor="white" />
+//           </button>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default SteamLogin;
 
    
 
