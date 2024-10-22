@@ -350,6 +350,7 @@ export default function InventoryModal() {
     try {
       const transformedItems = selectedItems.map((item) => item._id);
       const userId = selectedItems[0].owner;
+      const token =localStorage.getItem('jwtToken')
       const response = await axios.post(
         `${SOCKET_SERVER_URL}/jackpotSystem/join`,
         {
@@ -357,7 +358,9 @@ export default function InventoryModal() {
           userId: userId,
         },
         {
-          withCredentials: true
+          headers: {
+            Authorization: `Bearer ${token}`, // Use the retrieved token here
+          }
         }
       );
 

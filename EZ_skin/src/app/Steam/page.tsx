@@ -1,9 +1,8 @@
-"use client";
 import React, { useEffect } from "react";
 import AccountSetting from "@/components/Header/iconsdropdown";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useUserContext } from "@/context/UserContext";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation"; // Import useRouter for navigation
 
 const SteamLogin: React.FC = () => {
   const {
@@ -14,15 +13,22 @@ const SteamLogin: React.FC = () => {
     setIsLoggedIn,
   } = useUserContext();
 
-  const SOCKET_SERVER_URL =
-    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
+  const SOCKET_SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
+  const searchParams = useSearchParams(); // Get the current search parameters
+  const router = useRouter(); // Get the Next.js router
 
-  const searchParams = useSearchParams();
-  const router = useRouter(); // Router for redirecting after login
+  // Check if JWT exists in localStorage on page load
+  useEffect(() => {
+    const token = localStorage.getItem("jwtToken");
+    if (token) {
+      // If JWT exists, fetch user info to set login state
+      fetchUserInfo(token);
+    }
+  }, []); // Empty dependency array ensures this runs only on initial load
 
   useEffect(() => {
-    if (searchParams) {
-      const authCode = searchParams.get("code");
+    if (searchParams) { // Check if searchParams is not null
+      const authCode = searchParams.get("code"); // Get the 'code' parameter from the URL
       if (authCode) {
         exchangeAuthCodeForJWT(authCode);
       }
@@ -40,7 +46,10 @@ const SteamLogin: React.FC = () => {
       if (response.ok) {
         const { token } = await response.json();
         localStorage.setItem("jwtToken", token); // Store JWT in localStorage
-        fetchUserInfo(token);
+        await fetchUserInfo(token); // Fetch user info using the JWT
+
+        // After exchanging the code and fetching user info, remove the 'code' from the URL
+        router.replace("/"); // Redirect to base URL without reloading the page
       } else {
         console.log("Failed to exchange auth code for JWT.");
       }
@@ -54,19 +63,18 @@ const SteamLogin: React.FC = () => {
       const response = await fetch(`${SOCKET_SERVER_URL}/api/user`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Include JWT in header
         },
       });
 
       if (response.ok) {
+        console.log(document.cookie);
+        
         const userData = await response.json();
         setUsername(userData.username);
         setAvatar(userData.avatar.large);
         setSteamId64(userData.steamID64);
         setIsLoggedIn(true);
-
-        // Redirect to home page after successful login
-        router.replace("/"); // Replace the URL after login to remove auth-callback
       } else {
         console.log("User is not logged in or error occurred.");
       }

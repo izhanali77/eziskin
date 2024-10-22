@@ -40,6 +40,7 @@ export default function TradeURLModalComponent({
   const handleSave = async (event: React.MouseEvent) => {
     event.stopPropagation();
     // Replace 'your-api-endpoint' with your actual API endpoint
+    const token = localStorage.getItem('jwtToken')
     const apiEndpoint = `${SOCKET_SERVER_URL}/jackpotSystem/save-trade-url`;
     console.log(tradeURL);
     
@@ -50,7 +51,9 @@ export default function TradeURLModalComponent({
               tradeUrl: tradeURL
             },
             {
-              withCredentials: true
+              headers: {
+                Authorization: `Bearer ${token}`, // Use the retrieved token here
+              }
             }
           );
 

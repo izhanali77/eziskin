@@ -25,6 +25,7 @@ const InventoryPage: React.FC<{
   const [showMessage, setShowMessage] = useState<string | null>(null);
   const [selectionEnabled, setSelectionEnabled] = useState<boolean>(false);
   const [selectedItems, setSelectedItems] = useState<InventoryItem[]>([]);
+  const token = localStorage.getItem('jwtToken')
 
   // Maximum number of ite  
   const SOCKET_SERVER_URL =
@@ -40,7 +41,9 @@ const InventoryPage: React.FC<{
         const response = await fetch(
           `${SOCKET_SERVER_URL}/api/inventory`,{
             method: 'GET',
-            credentials: 'include' // This ensures the cookie is sent with the request
+            headers: {
+              Authorization: `Bearer ${token}`, // Include JWT in header
+            } // This ensures the cookie is sent with the request
           } 
         );
         if (!response.ok) {

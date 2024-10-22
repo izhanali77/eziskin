@@ -17,6 +17,7 @@ const { getInventory } = require('./utils/getInventory');
 const jackpotRoutes = require('./routes/jackpotRoutes');
 const Jackpot = require('./models/jackpotSchema');
 const isAuth = require('./middleware/isAuth');
+const { generateToken } =  require('./utils/genertaetoken')
 const front_url = process.env.FRONTEND_URL
 const back_url = process.env.BACKEND_URL
 // Initialize the app
@@ -50,89 +51,355 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'your-session-secret',
   resave: false,
   saveUninitialized: true,
-  // cookie: {
-  //   httpOnly: true, // Prevent client-side access to the cookie
-  //   secure: process.env.NODE_ENV === 'production', // Only use HTTPS in production
-  //   sameSite: 'Lax',
-  // },
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Lax',
+  },
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Configure Passport with Steam Strategy
-passport.serializeUser((user, done) => {
-  done(null, user.id); // Store only the user ID in the session
-});
 
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id); // Fetch user details from the database
-    done(null, user); // Assign the retrieved user to req.user
-  } catch (err) {
-    done(err);
-  }
-});
+
+// Passport Steam Strategy
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((obj, done) => done(null, obj));
 
 passport.use(
   new SteamStrategy(
     {
-      returnURL: `${process.env.BACKEND_URL}/auth/steam`,
+      returnURL: `${process.env.BACKEND_URL}/auth/steam/return`,
       realm: `${process.env.BACKEND_URL}/`,
       apiKey: process.env.STEAM_API_KEY,
     },
     async (identifier, profile, done) => {
-      console.log('Steam Identifier:', identifier);
-      console.log('Steam Profile:', profile); // Check profile details
-      const steamID64 = profile.id;
-      const username = profile.displayName;
-      const avatar = profile.avatar
+      try {
+        profile.identifier = identifier;
+        const steamID64 = profile.id;
+        const username = profile.displayName;
 
-      // Check if user already exists
-      let existingUser = await User.findOne({ steamId: steamID64 });
-      if (!existingUser) {
-        const newUser = new User({ steamId: steamID64, username: username, avatar: avatar });
-        await newUser.save();
-        console.log('New User Created:', newUser); // Log new user
-        return done(null, newUser);
+        // Check if user already exists
+        let existingUser = await User.findOne({ steamId: steamID64 });
+        if (!existingUser) {
+          const newUser = new User({ steamId: steamID64, username });
+          await newUser.save();
+          return done(null, newUser);
+        }
+        return done(null, existingUser);
+      } catch (err) {
+        return done(err);
       }
-      console.log('Existing User Found:', existingUser); // Log existing user
-      return done(null, existingUser);
     }
   )
 );
 
 // Steam Authentication Route
-app.get('/auth/steam', passport.authenticate('steam', { failureRedirect: '/' }), (req, res) => {
-  // console.log('User after authentication:', req.user); // Log user after authentication
-  res.redirect(`${process.env.FRONTEND_URL}`);
-});
+app.get('/auth/steam', passport.authenticate('steam'));
 
-// Logout Route
-app.post('/auth/logout', (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      return res.status(500).json({ message: 'Logout error' });
-    }
-    res.clearCookie('FBI'); // Clear cookie
-    res.json({ message: 'Logged out successfully' });
-  });
-});
+app.get(
+  '/auth/steam/return',
+  passport.authenticate('steam', { failureRedirect: '/' }),
+  (req, res) => {
+    // Generate a temporary authorization code
+    const authCode = Math.random().toString(36).substring(7);
+    
+    // Store auth code in memory temporarily (e.g., Redis, etc. in production)
+    global.authCodes = global.authCodes || {};
+    global.authCodes[authCode] = req.user;
 
-// User Info Route
-app.get('/api/user', (req, res) => {
-  console.log(req.user);
-  
-  if (req.isAuthenticated() && req.user) {
-    return res.json({
-      steamID64: req.user.steamId,
-      username: req.user.username,
-      avatar: req.user.avatar, // This might need adjustment if photos are not stored
-    });
+    // Redirect to the frontend with the auth code in the query
+    res.redirect(`${process.env.FRONTEND_URL}/auth-callback?code=${authCode}`);
   }
-  return res.status(401).json({ message: 'Unauthorized' });
+);
+
+// Exchange auth code for JWT
+app.post('/auth/exchange', (req, res) => {
+  const { code } = req.body;
+
+  if (global.authCodes && global.authCodes[code]) {
+    const user = global.authCodes[code];
+
+    // Get client IP address
+    const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+    // Generate JWT with user data and client IP
+    const token = generateToken(user, clientIp);
+
+    // Clear the auth code
+    delete global.authCodes[code];
+
+    res.json({ token });
+  } else {
+    res.status(400).json({ message: 'Invalid or expired authorization code' });
+  }
 });
 
+// Protected route (example)
+app.get('/api/user', isAuth, async (req, res) => {
+  // req.user is available here
+  const user = await User.findOne({ steamId: req.user.id });
+
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  // Respond with user data
+  res.json({ steamID64: user.steamId, username: user.username, avatar: user.avatar });
+});
+
+
+app.get('/api/inventory', isAuth, async (req, res) => {
+  console.log(req.user.id);
+  try {
+    
+    
+    const steamID64 = req.user.id;
+    const appId =  252490;
+    const contextId =  2;
+
+    if (!steamID64) {
+      return res.status(400).json({ error: 'Missing SteamID64 parameter.' });
+    }
+
+    // Fetch the inventory
+    const inventory = await getInventory(appId, steamID64, contextId);
+    if (!inventory || !inventory.items || inventory.items.length === 0) {
+      return res.status(404).json({ error: 'No inventory found.' });
+    }
+
+    // Find the user in the database
+    const user = await User.findOne({ steamId: steamID64 });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    // Gather all assetIds to check for existing items in one query
+    const allAssetIds = inventory.items.flatMap(item => item.assetIds);
+    
+    // Fetch all existing items in one query
+    const existingItems = await Item.find({
+      owner: user._id,
+      appId,
+      contextId,
+      assetId: { $in: allAssetIds }
+    });
+
+    // Create a Set of assetIds that already exist
+    const existingAssetIds = new Set(existingItems.map(item => item.assetId));
+
+    // Prepare an array for new items to insert
+    const newItems = [];
+    const newInventoryItemIds = [];
+
+    // Process each inventory item
+    inventory.items.forEach(item => {
+      // Extract the numeric part from the price string
+      const priceString = item.price;
+      const priceMatch = priceString.match(/\d+(\.\d+)?/);
+      const price = priceMatch ? parseFloat(priceMatch[0]) : 0;
+
+      // For each assetId, check if it already exists in the database
+      item.assetIds.forEach(assetId => {
+        if (!existingAssetIds.has(assetId)) {
+          // If the item doesn't exist, prepare it for insertion
+          const newItem = {
+            name: item.market_hash_name,
+            iconUrl: item.icon_url,
+            price: `${price} USD`,  // Save the numeric value
+            owner: user._id,
+            assetId,
+            appId,
+            contextId
+          };
+
+          newItems.push(newItem);
+        }
+      });
+    });
+
+    // Bulk insert new items if there are any
+    if (newItems.length > 0) {
+      const insertedItems = await Item.insertMany(newItems);
+      newInventoryItemIds.push(...insertedItems.map(item => item._id));
+    }
+
+    // Add new items to the user's inventory and save user in one operation
+    if (newInventoryItemIds.length > 0) {
+      user.inventory.push(...newInventoryItemIds);
+      await user.save();
+    }
+    
+    // Return the updated user's inventory
+    const userInventory = await User.findOne({ steamId: steamID64 }).populate('inventory');
+    res.json({ items: userInventory.inventory });
+
+  } catch (error) {
+    console.error("Error in /api/inventory:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+// Use jackpot routes
+app.use('/jackpotSystem', jackpotRoutes);
+
+// Route to redirect user to Steam Trade Offer URL page
+app.get('/trade-url', (req, res) => {
+  try {
+    const steamID64 = req.user?.id;
+    if (!steamID64) {
+      return res.status(401).json({ error: 'Unauthorized: No Steam ID found.' });
+    }
+    const tradeUrl = `https://steamcommunity.com/profiles/${steamID64}/tradeoffers/privacy#trade_offer_access_url`;
+    res.redirect(tradeUrl);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Logout route
+// app.post('/auth/logout', (req, res) => {
+//   res.clearCookie('token'); // Clear the token cookie
+//   res.json({ message: 'Logged out' });
+// });
+
+// Connect to MongoDB and start the server
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://bilalshehroz420:00000@cluster0.wru7job.mongodb.net/ez_skin?retryWrites=true&w=majority')
+  .then(() => {
+    http.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
+
+    // Existing Socket.IO connection handler
+    io.on('connection', socket => {
+      console.log('Client connected', socket.id);
+      // Existing event handlers (if any)
+    });
+
+    // Chat namespace for chat functionality
+    const chatNamespace = io.of('/chat');
+
+    chatNamespace.on('connection', async (socket) => {
+      console.log('Client connected to chat namespace', socket.id);
+
+      try {
+        // Fetch the last 20 messages from the database, sorted by timestamp ascending
+        const lastMessages = await Message.find()
+          .sort({ timestamp: -1 })
+          .limit(20)
+          .sort({ timestamp: 1 }); // To send them in chronological order
+
+        // Send the initial messages to the newly connected client
+        socket.emit('initialMessages', lastMessages);
+      } catch (err) {
+        console.error('Error fetching initial messages:', err);
+      }
+
+      // Listen for incoming chat messages
+      socket.on('chatMessage', async (msg) => {
+        // Add a timestamp if not provided
+        msg.timestamp = msg.timestamp || new Date();
+
+        // Save the message to the database
+        const message = new Message({
+          username: msg.username,
+          text: msg.text,
+          avatar: msg.avatar,
+          timestamp: msg.timestamp,
+        });
+
+        try {
+          await message.save();
+
+          // After saving, check if there are more than 20 messages
+          const messageCount = await Message.countDocuments();
+          if (messageCount > 20) {
+            // Fetch the messages to delete
+            const messagesToDelete = await Message.find()
+              .sort({ timestamp: 1 }) // Oldest first
+              .limit(messageCount - 20);
+
+            // Extract the IDs of messages to delete
+            const idsToDelete = messagesToDelete.map(msg => msg._id);
+
+            // Delete all messages with the extracted IDs
+            await Message.deleteMany({ _id: { $in: idsToDelete } });
+          }
+
+        } catch (err) {
+          console.error('Error saving message:', err);
+          return;
+        }
+
+        // Broadcast the message to all connected clients in the chat namespace
+        chatNamespace.emit('chatMessage', msg);
+      });
+
+      // Handle disconnect event
+      socket.on('disconnect', () => {
+        console.log('Client disconnected from chat namespace', socket.id);
+      });
+    });
+
+  })
+  .catch(err => console.error('Database connection error:', err));
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // server.js
+
+// require('dotenv').config(); // Ensure this is at the top
+// const express = require('express');
+// const passport = require('passport');
+// const SteamStrategy = require('passport-steam').Strategy;
+// const session = require('express-session');
+// const cors = require('cors');
+// const jwt = require('jsonwebtoken');
+// const cookieParser = require('cookie-parser');
+// const fs = require('fs');
+// const mongoose = require('mongoose');
+// const User = require('./models/userSchema');
+// const Item = require('./models/itemSchema');
+// const Message = require('./models/messageSchema'); // Import the Message model
+// const { getInventory } = require('./utils/getInventory');
+// const jackpotRoutes = require('./routes/jackpotRoutes');
+// const Jackpot = require('./models/jackpotSchema');
+// const isAuth = require('./middleware/isAuth');
+// const front_url = process.env.FRONTEND_URL
+// const back_url = process.env.BACKEND_URL
+// // Initialize the app
+// const app = express();
+// const PORT = process.env.PORT || 5000;
+
+// // Middleware
+
+// app.use(express.json());
+// app.use(cookieParser());
+// app.use(
+//   cors({
+//     origin: `${front_url}`,
+//     methods: ['GET', 'POST'],
+//     credentials: true,
+//   })
+// );
+
+// // Socket.io setup
+// const http = require('http').Server(app);
+// const io = require('./socket').init(http, {
+//   cors: {
+//     origin: `${front_url}`, // Allow only your client application's origin
+//     methods: ['GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', 'DELETE'], // Allowable methods
+//     credentials: true, // Optional: if you need cookies or authorization headers
+//   },
+// });
 
 
 // app.use(session({
@@ -269,199 +536,199 @@ app.get('/api/user', (req, res) => {
 
 
 
-app.get('/api/inventory', isAuth, async (req, res) => {
-  try {
-    console.log(req.user.steamID64);
+// app.get('/api/inventory', isAuth, async (req, res) => {
+//   try {
+//     console.log(req.user.steamID64);
     
-    const steamID64 = req.user.steamID64;
-    const appId =  252490;
-    const contextId =  2;
+//     const steamID64 = req.user.steamID64;
+//     const appId =  252490;
+//     const contextId =  2;
 
-    if (!steamID64) {
-      return res.status(400).json({ error: 'Missing SteamID64 parameter.' });
-    }
+//     if (!steamID64) {
+//       return res.status(400).json({ error: 'Missing SteamID64 parameter.' });
+//     }
 
-    // Fetch the inventory
-    const inventory = await getInventory(appId, steamID64, contextId);
-    if (!inventory || !inventory.items || inventory.items.length === 0) {
-      return res.status(404).json({ error: 'No inventory found.' });
-    }
+//     // Fetch the inventory
+//     const inventory = await getInventory(appId, steamID64, contextId);
+//     if (!inventory || !inventory.items || inventory.items.length === 0) {
+//       return res.status(404).json({ error: 'No inventory found.' });
+//     }
 
-    // Find the user in the database
-    const user = await User.findOne({ steamId: steamID64 });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found.' });
-    }
+//     // Find the user in the database
+//     const user = await User.findOne({ steamId: steamID64 });
+//     if (!user) {
+//       return res.status(404).json({ error: 'User not found.' });
+//     }
 
-    // Gather all assetIds to check for existing items in one query
-    const allAssetIds = inventory.items.flatMap(item => item.assetIds);
+//     // Gather all assetIds to check for existing items in one query
+//     const allAssetIds = inventory.items.flatMap(item => item.assetIds);
     
-    // Fetch all existing items in one query
-    const existingItems = await Item.find({
-      owner: user._id,
-      appId,
-      contextId,
-      assetId: { $in: allAssetIds }
-    });
+//     // Fetch all existing items in one query
+//     const existingItems = await Item.find({
+//       owner: user._id,
+//       appId,
+//       contextId,
+//       assetId: { $in: allAssetIds }
+//     });
 
-    // Create a Set of assetIds that already exist
-    const existingAssetIds = new Set(existingItems.map(item => item.assetId));
+//     // Create a Set of assetIds that already exist
+//     const existingAssetIds = new Set(existingItems.map(item => item.assetId));
 
-    // Prepare an array for new items to insert
-    const newItems = [];
-    const newInventoryItemIds = [];
+//     // Prepare an array for new items to insert
+//     const newItems = [];
+//     const newInventoryItemIds = [];
 
-    // Process each inventory item
-    inventory.items.forEach(item => {
-      // Extract the numeric part from the price string
-      const priceString = item.price;
-      const priceMatch = priceString.match(/\d+(\.\d+)?/);
-      const price = priceMatch ? parseFloat(priceMatch[0]) : 0;
+//     // Process each inventory item
+//     inventory.items.forEach(item => {
+//       // Extract the numeric part from the price string
+//       const priceString = item.price;
+//       const priceMatch = priceString.match(/\d+(\.\d+)?/);
+//       const price = priceMatch ? parseFloat(priceMatch[0]) : 0;
 
-      // For each assetId, check if it already exists in the database
-      item.assetIds.forEach(assetId => {
-        if (!existingAssetIds.has(assetId)) {
-          // If the item doesn't exist, prepare it for insertion
-          const newItem = {
-            name: item.market_hash_name,
-            iconUrl: item.icon_url,
-            price: `${price} USD`,  // Save the numeric value
-            owner: user._id,
-            assetId,
-            appId,
-            contextId
-          };
+//       // For each assetId, check if it already exists in the database
+//       item.assetIds.forEach(assetId => {
+//         if (!existingAssetIds.has(assetId)) {
+//           // If the item doesn't exist, prepare it for insertion
+//           const newItem = {
+//             name: item.market_hash_name,
+//             iconUrl: item.icon_url,
+//             price: `${price} USD`,  // Save the numeric value
+//             owner: user._id,
+//             assetId,
+//             appId,
+//             contextId
+//           };
 
-          newItems.push(newItem);
-        }
-      });
-    });
+//           newItems.push(newItem);
+//         }
+//       });
+//     });
 
-    // Bulk insert new items if there are any
-    if (newItems.length > 0) {
-      const insertedItems = await Item.insertMany(newItems);
-      newInventoryItemIds.push(...insertedItems.map(item => item._id));
-    }
+//     // Bulk insert new items if there are any
+//     if (newItems.length > 0) {
+//       const insertedItems = await Item.insertMany(newItems);
+//       newInventoryItemIds.push(...insertedItems.map(item => item._id));
+//     }
 
-    // Add new items to the user's inventory and save user in one operation
-    if (newInventoryItemIds.length > 0) {
-      user.inventory.push(...newInventoryItemIds);
-      await user.save();
-    }
-    console.log("noman");
+//     // Add new items to the user's inventory and save user in one operation
+//     if (newInventoryItemIds.length > 0) {
+//       user.inventory.push(...newInventoryItemIds);
+//       await user.save();
+//     }
+//     console.log("noman");
     
-    // Return the updated user's inventory
-    const userInventory = await User.findOne({ steamId: steamID64 }).populate('inventory');
-    res.json({ items: userInventory.inventory });
+//     // Return the updated user's inventory
+//     const userInventory = await User.findOne({ steamId: steamID64 }).populate('inventory');
+//     res.json({ items: userInventory.inventory });
 
-  } catch (error) {
-    console.error("Error in /api/inventory:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-// Use jackpot routes
-app.use('/jackpotSystem', jackpotRoutes);
+//   } catch (error) {
+//     console.error("Error in /api/inventory:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+// // Use jackpot routes
+// app.use('/jackpotSystem', jackpotRoutes);
 
-// Route to redirect user to Steam Trade Offer URL page
-app.get('/trade-url', (req, res) => {
-  try {
-    const steamID64 = req.user?.id;
-    if (!steamID64) {
-      return res.status(401).json({ error: 'Unauthorized: No Steam ID found.' });
-    }
-    const tradeUrl = `https://steamcommunity.com/profiles/${steamID64}/tradeoffers/privacy#trade_offer_access_url`;
-    res.redirect(tradeUrl);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Logout route
-// app.post('/auth/logout', (req, res) => {
-//   res.clearCookie('token'); // Clear the token cookie
-//   res.json({ message: 'Logged out' });
+// // Route to redirect user to Steam Trade Offer URL page
+// app.get('/trade-url', (req, res) => {
+//   try {
+//     const steamID64 = req.user?.id;
+//     if (!steamID64) {
+//       return res.status(401).json({ error: 'Unauthorized: No Steam ID found.' });
+//     }
+//     const tradeUrl = `https://steamcommunity.com/profiles/${steamID64}/tradeoffers/privacy#trade_offer_access_url`;
+//     res.redirect(tradeUrl);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
 // });
 
-// Connect to MongoDB and start the server
-mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://bilalshehroz420:00000@cluster0.wru7job.mongodb.net/ez_skin?retryWrites=true&w=majority')
-  .then(() => {
-    http.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
-    });
+// // Logout route
+// // app.post('/auth/logout', (req, res) => {
+// //   res.clearCookie('token'); // Clear the token cookie
+// //   res.json({ message: 'Logged out' });
+// // });
 
-    // Existing Socket.IO connection handler
-    io.on('connection', socket => {
-      console.log('Client connected', socket.id);
-      // Existing event handlers (if any)
-    });
+// // Connect to MongoDB and start the server
+// mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://bilalshehroz420:00000@cluster0.wru7job.mongodb.net/ez_skin?retryWrites=true&w=majority')
+//   .then(() => {
+//     http.listen(PORT, () => {
+//       console.log(`Server is running on http://localhost:${PORT}`);
+//     });
 
-    // Chat namespace for chat functionality
-    const chatNamespace = io.of('/chat');
+//     // Existing Socket.IO connection handler
+//     io.on('connection', socket => {
+//       console.log('Client connected', socket.id);
+//       // Existing event handlers (if any)
+//     });
 
-    chatNamespace.on('connection', async (socket) => {
-      console.log('Client connected to chat namespace', socket.id);
+//     // Chat namespace for chat functionality
+//     const chatNamespace = io.of('/chat');
 
-      try {
-        // Fetch the last 20 messages from the database, sorted by timestamp ascending
-        const lastMessages = await Message.find()
-          .sort({ timestamp: -1 })
-          .limit(20)
-          .sort({ timestamp: 1 }); // To send them in chronological order
+//     chatNamespace.on('connection', async (socket) => {
+//       console.log('Client connected to chat namespace', socket.id);
 
-        // Send the initial messages to the newly connected client
-        socket.emit('initialMessages', lastMessages);
-      } catch (err) {
-        console.error('Error fetching initial messages:', err);
-      }
+//       try {
+//         // Fetch the last 20 messages from the database, sorted by timestamp ascending
+//         const lastMessages = await Message.find()
+//           .sort({ timestamp: -1 })
+//           .limit(20)
+//           .sort({ timestamp: 1 }); // To send them in chronological order
 
-      // Listen for incoming chat messages
-      socket.on('chatMessage', async (msg) => {
-        // Add a timestamp if not provided
-        msg.timestamp = msg.timestamp || new Date();
+//         // Send the initial messages to the newly connected client
+//         socket.emit('initialMessages', lastMessages);
+//       } catch (err) {
+//         console.error('Error fetching initial messages:', err);
+//       }
 
-        // Save the message to the database
-        const message = new Message({
-          username: msg.username,
-          text: msg.text,
-          avatar: msg.avatar,
-          timestamp: msg.timestamp,
-        });
+//       // Listen for incoming chat messages
+//       socket.on('chatMessage', async (msg) => {
+//         // Add a timestamp if not provided
+//         msg.timestamp = msg.timestamp || new Date();
 
-        try {
-          await message.save();
+//         // Save the message to the database
+//         const message = new Message({
+//           username: msg.username,
+//           text: msg.text,
+//           avatar: msg.avatar,
+//           timestamp: msg.timestamp,
+//         });
 
-          // After saving, check if there are more than 20 messages
-          const messageCount = await Message.countDocuments();
-          if (messageCount > 20) {
-            // Fetch the messages to delete
-            const messagesToDelete = await Message.find()
-              .sort({ timestamp: 1 }) // Oldest first
-              .limit(messageCount - 20);
+//         try {
+//           await message.save();
 
-            // Extract the IDs of messages to delete
-            const idsToDelete = messagesToDelete.map(msg => msg._id);
+//           // After saving, check if there are more than 20 messages
+//           const messageCount = await Message.countDocuments();
+//           if (messageCount > 20) {
+//             // Fetch the messages to delete
+//             const messagesToDelete = await Message.find()
+//               .sort({ timestamp: 1 }) // Oldest first
+//               .limit(messageCount - 20);
 
-            // Delete all messages with the extracted IDs
-            await Message.deleteMany({ _id: { $in: idsToDelete } });
-          }
+//             // Extract the IDs of messages to delete
+//             const idsToDelete = messagesToDelete.map(msg => msg._id);
 
-        } catch (err) {
-          console.error('Error saving message:', err);
-          return;
-        }
+//             // Delete all messages with the extracted IDs
+//             await Message.deleteMany({ _id: { $in: idsToDelete } });
+//           }
 
-        // Broadcast the message to all connected clients in the chat namespace
-        chatNamespace.emit('chatMessage', msg);
-      });
+//         } catch (err) {
+//           console.error('Error saving message:', err);
+//           return;
+//         }
 
-      // Handle disconnect event
-      socket.on('disconnect', () => {
-        console.log('Client disconnected from chat namespace', socket.id);
-      });
-    });
+//         // Broadcast the message to all connected clients in the chat namespace
+//         chatNamespace.emit('chatMessage', msg);
+//       });
 
-  })
-  .catch(err => console.error('Database connection error:', err));
+//       // Handle disconnect event
+//       socket.on('disconnect', () => {
+//         console.log('Client disconnected from chat namespace', socket.id);
+//       });
+//     });
+
+//   })
+//   .catch(err => console.error('Database connection error:', err));
 
 
 

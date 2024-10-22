@@ -116,15 +116,14 @@ const JackpotHistory: React.FC = () => {
   const [selectedJackpot, setSelectedJackpot] = useState<Jackpot | null>(null);
   const SOCKET_SERVER_URL =
     process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
+  const token = localStorage.getItem('jwt')
 
   // Fetch completed jackpots from the backend
   useEffect(() => {
     const fetchCompletedJackpots = async () => {
       try {
         const response = await axios.get<Jackpot[]>(
-          `${SOCKET_SERVER_URL}/jackpotSystem/history`, {
-              withCredentials: true
-          }
+          `${SOCKET_SERVER_URL}/jackpotSystem/history`
         ); // Adjust the endpoint if necessary
         console.log(response.data);
 
