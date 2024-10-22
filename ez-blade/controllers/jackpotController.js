@@ -239,7 +239,7 @@ const getJackpotHistory = async (req, res) => {
     console.log("reached");
     
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    console.log(twentyFourHoursAgo);
+    // console.log(twentyFourHoursAgo);
     
     // Fetch all jackpots with status 'completed' and created within the last 24 hours
     const jackpots = await Jackpot.find({
@@ -258,7 +258,7 @@ const getJackpotHistory = async (req, res) => {
         path: 'winner', // Populate the 'winner' field
         select: 'username avatar', // Select specific fields (optional)
       });
-      console.log("jack", jackpots);
+      // console.log("jack", jackpots);
     // Check if any jackpots are found
     if (!jackpots || jackpots.length === 0) {
       return res.status(404).json({ error: 'No completed jackpots found in the last 24 hours' });
