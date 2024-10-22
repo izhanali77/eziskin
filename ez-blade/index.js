@@ -127,7 +127,7 @@ app.get('/api/user', (req, res) => {
     return res.json({
       steamID64: req.user.steamId,
       username: req.user.username,
-      avatar: req.user.photos, // This might need adjustment if photos are not stored
+      avatar: req.user.avatar, // This might need adjustment if photos are not stored
     });
   }
   return res.status(401).json({ message: 'Unauthorized' });
