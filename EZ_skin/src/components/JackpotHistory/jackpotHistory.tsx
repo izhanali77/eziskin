@@ -116,7 +116,6 @@ const JackpotHistory: React.FC = () => {
   const [selectedJackpot, setSelectedJackpot] = useState<Jackpot | null>(null);
   const SOCKET_SERVER_URL =
     process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
-  const token = localStorage.getItem('jwt')
 
   // Fetch completed jackpots from the backend
   useEffect(() => {
