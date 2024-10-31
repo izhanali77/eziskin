@@ -1,3 +1,4 @@
+
 import Layout from "@/components/Layout";
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry";
 import "@/styles/globals.css";
@@ -18,7 +19,10 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com"></link>
         <link rel="preconnect" href="https://fonts.gstatic.com"></link>
-        <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet"></link>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap"
+          rel="stylesheet"
+        ></link>
       </head>
       <body>
         <ThemeRegistry>

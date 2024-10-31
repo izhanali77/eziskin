@@ -17,7 +17,6 @@
 // const SOCKET_SERVER_URL =
 //   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
-
 // const extractPrice = (priceString: string): number => {
 //   console.log("hello", priceString, typeof (priceString));
 
@@ -155,7 +154,6 @@
 
 //         const initialParticipants: Participant[] = mapParticipants(participantsData);
 
-
 //         setParticipants(initialParticipants);
 //         setRoundHash(response.data._id);
 //       } catch (error: any) {
@@ -226,7 +224,7 @@
 //         </div>
 
 //         <Chat isOpen={isChatOpen} />
-//         <div 
+//         <div
 //         className={`w-full ${isChatOpen ? 'lg:w-[80%]' : 'lg:w-full'} overflow-y-auto h-auto blur-background`}
 //           style={{
 //             backgroundImage: `url(${back.src})`,
@@ -312,8 +310,6 @@
 //     </>
 //   );
 // }
-
-
 
 // HomePage.tsx
 
@@ -406,7 +402,9 @@ interface JackpotStatusResponse {
 }
 
 // Utility to map backend data to frontend Participant structure
-const mapParticipants = (participantsData: ParticipantData[]): Participant[] => {
+const mapParticipants = (
+  participantsData: ParticipantData[],
+): Participant[] => {
   return participantsData.map((participant) => {
     const user = participant.user;
     const totalValue = participant.items.reduce((acc, item) => {
@@ -455,7 +453,9 @@ export default function HomePage() {
 
   // Fetch function for React Query
   const fetchJackpotData = async (): Promise<JackpotStatusResponse> => {
-    const response = await axios.get(`${SOCKET_SERVER_URL}/jackpotSystem/status`);
+    const response = await axios.get(
+      `${SOCKET_SERVER_URL}/jackpotSystem/status`,
+    );
     return response.data;
   };
 
@@ -496,7 +496,7 @@ export default function HomePage() {
         participantColor: participant.color,
         participantImg: participant.img,
         participantUsername: participant.username,
-      }))
+      })),
     );
   }, [participants]);
 
@@ -512,7 +512,9 @@ export default function HomePage() {
   if (isError) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-[#404040]">
-        <div className="text-red-500">Error: {error instanceof Error ? error.message : 'An error occurred'}</div>
+        <div className="text-red-500">
+          Error: {error instanceof Error ? error.message : "An error occurred"}
+        </div>
       </div>
     );
   }
