@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect } from "react";
 import AccountSetting from "@/components/Header/iconsdropdown";
 import LogoutIcon from "@mui/icons-material/Logout";
