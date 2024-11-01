@@ -501,7 +501,7 @@ const InventoryPage: React.FC<{
               >
                 <div className="flex items-center justify-start gap-0">
                   <div className="text-[#EEC475] text-[11px] absolute left-0 top-0 bg-[#2C2C2E] w-12 h-6 flex justify-center items-center">
-                    {item.price}
+                    $ {item.price}
                   </div>
                   <div className="inclined-div h-6 w-4 absolute left-12 top-0 rotate bg-[#2C2C2E]"></div>
                 </div>
