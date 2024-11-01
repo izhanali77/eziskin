@@ -43,7 +43,7 @@ export default function InventoryModal() {
   const { username } = useUserContext();
 
   const SOCKET_SERVER_URL =
-    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
+    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
 
   const handleOpen = (event: React.MouseEvent) => {
     event.stopPropagation();
