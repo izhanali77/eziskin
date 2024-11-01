@@ -30,7 +30,7 @@ type Stats = {
 export default function ProfileModal({ open, onClose }: ProfileModalProps) {
   const { username, avatar } = useUserContext(); // Ensure you have the token
   const SOCKET_SERVER_URL =
-    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
+    process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
   // Fetch function for React Query
   const fetchProfileStats = async (): Promise<Stats> => {
@@ -299,7 +299,7 @@ export default function ProfileModal({ open, onClose }: ProfileModalProps) {
 //   const token =
 //     typeof window !== "undefined" ? localStorage.getItem("jwtToken") : null;
 //   const SOCKET_SERVER_URL =
-//     process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
+//     process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
 //   const fetchProfileStats = async () => {
 //     try {

@@ -15,7 +15,7 @@
 // import MobileChat from "@/components/mobileChatModel";
 
 // const SOCKET_SERVER_URL =
-//   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
+//   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
 // const extractPrice = (priceString: string): number => {
 //   console.log("hello", priceString, typeof (priceString));
@@ -333,7 +333,7 @@
 // import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 // const SOCKET_SERVER_URL =
-//   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
+//   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
 // // Utility function to extract price
 // const extractPrice = (priceString: string): number => {
@@ -674,7 +674,7 @@ import MobileChat from "@/components/mobileChatModel";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const SOCKET_SERVER_URL =
-  process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
+  process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
 // Utility function to extract price
 const extractPrice = (priceString: string): number => {
@@ -804,7 +804,7 @@ export default function HomePage() {
   const { data, isLoading, isError, error, refetch } = useQuery<JackpotStatusResponse, AxiosError>({
     queryKey: ["jackpotData"],
     queryFn: fetchJackpotData,
-    // retry: false, // Prevent retrying on failure
+    retry: false, // Prevent retrying on failure
   });
 
   // Determine if the error is a 404

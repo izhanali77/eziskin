@@ -169,6 +169,7 @@ const joinJackpot = async (req, res) => {
         tradeUrl:false
        });
     }
+    
 
     // Fetch the items
     const items = await Item.find({ _id: { $in: itemIds } });
