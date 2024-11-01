@@ -403,6 +403,7 @@ const InventoryPage: React.FC<{
   const SOCKET_SERVER_URL =
     process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
+    
   // Maximum number of items that can be selected
   const MAX_SELECTED_ITEMS = 20;
 
