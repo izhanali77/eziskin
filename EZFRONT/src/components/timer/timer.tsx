@@ -56,7 +56,7 @@ const TimerBox: React.FC<TimerBoxProps> = ({ onTimerEnd }) => {
     socket.on("timer", (data: TimerData) => {
       setTimeLeft(data.timeLeft);
       // Calculate percentage based on initial time (assuming 120 seconds)
-      const newPercentage = (data.timeLeft / 60) * 100;
+      const newPercentage = (data.timeLeft / 120) * 100;
       setPercentage(newPercentage);
 
       if (data.timeLeft === 0 && onTimerEnd) {
