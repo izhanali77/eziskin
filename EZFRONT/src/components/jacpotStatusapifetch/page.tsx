@@ -12,7 +12,7 @@
 // import ItemBadge from "./itembadge"
 
 // const SOCKET_SERVER_URL =
-//   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
+//   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
 // interface Item {
 //   _id: string;
@@ -379,7 +379,7 @@ import Modal from "../ModalInventory";
 import ItemBadge from "./itembadge";
 
 const SOCKET_SERVER_URL =
-  process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
+  process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
 // Interfaces
 interface Item {
@@ -637,12 +637,12 @@ export default function JackpotStatus({
       <div className="w-full mt-10 text-center">
         <div className="w-full relative">
           <div className="flex justify-between items-center z-30 -top-3 px-5 absolute w-full">
-            <div className="bg-[#3D3A40] text-[10px] md:text-sm text-white px-2 py-1 w-40 rounded">
-              Total Pot Value:{" "}
+            <div className="bg-[#3D3A40]  text-[10px] md:text-sm text-white px-2 py-1 w-40 itemsOfWHEEL">
+              Total pot Value:{" "}
               <span className="text-yellow-300">${totalJackpotValue.toFixed(2)}</span>
             </div>
-            <div className="bg-[#3D3A40] rounded-md text-[10px] md:text-sm text-white px-2 py-1 w-40">
-              Skins Count: <span className="text-yellow-300">{totalSkins}</span>
+            <div className="bg-[#3D3A40] rounded-md text-[10px] md:text-sm text-white px-2 py-1 w-40 itemsOfWHEEL">
+              Skinscount: <span className="text-yellow-300">{totalSkins}</span>
             </div>
           </div>
           <HorizontalWheel
