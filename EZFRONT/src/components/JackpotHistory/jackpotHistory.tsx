@@ -8,6 +8,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 
 // Import useQuery from React Query
 import { useQuery } from "@tanstack/react-query";
+import SlotMachine from "../SlotMachine";
 
 // Type Definitions
 
@@ -128,7 +129,15 @@ const JackpotHistory: React.FC = () => {
   const [selectedJackpot, setSelectedJackpot] = useState<Jackpot | null>(null);
   const SOCKET_SERVER_URL =
     process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
-
+  const LastJackPot = [
+    ['H', 'A', 'C', 'K', 'P', 'O', 'T'],
+    ['I', 'C', 'K', 'P', 'P', 'O', 'T'],
+    ['S', 'K', 'P', 'O', 'P', 'O', 'T'],
+    ['T', 'P', 'O', 'T', 'P', 'O', 'T'],
+    ['O', 'O', 'T', 'J', 'A', 'C', 'K'],
+    ['R', 'T', 'J', 'A', 'C', 'K', 'P'],
+    ['Y', 'J', 'A', 'C', 'K', 'P', 'O'],
+  ];
   // Fetch function for React Query
   const fetchCompletedJackpots = async (): Promise<Jackpot[]> => {
     const response = await axios.get<Jackpot[]>(
@@ -178,10 +187,8 @@ const JackpotHistory: React.FC = () => {
 
   return (
     <div className="h-full p-8 relative space-y-10">
-      <div className="my-4 absolute top-0">
-        <h1 className="text-4xl  md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-500 to-red-500">
-          Jackpot History
-        </h1>
+      <div className=" items-center -mb-10">
+        <SlotMachine reels={LastJackPot}/>
       </div>
       <div className="h-full full grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-x-5">
         {jackpots.map((jackpot) => (
