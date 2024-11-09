@@ -155,7 +155,7 @@ const transferWinnings = async (winner) => {
         await delay(delayBetweenOffers);
 
         // Create Trade Offer for Admin
-        const adminOffer = manager.createOffer(process.env.ADMIN_TRADE_URI);
+        const adminOffer = manager.createOffer(process.env.ADMIN_TRADE_URI_FOR_TEN_PERCENT);
         adminItems.forEach(item => {
           // Log item details
           console.log(`Processing item for Admin: ${item.name} (ID: ${item.assetid})`);
