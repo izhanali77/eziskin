@@ -25,7 +25,7 @@
 // import LastFourJackpots from "@/components/LastFourJackpots";
 
 // const SOCKET_SERVER_URL =
-//   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
+//   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
 // // Utility function to extract price
 // const extractPrice = (priceString: string): number => {
@@ -382,7 +382,7 @@ import LastFourJackpots from "@/components/LastFourJackpots";
 import SlotMachine from "@/components/SlotMachine";
 
 const SOCKET_SERVER_URL =
-  process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
+  process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:5000";
 
 // Utility function to extract price
 const extractPrice = (priceString: string): number => {
@@ -656,7 +656,7 @@ export default function HomePage() {
         {/* Sidebar */}
         <div className="h-full flex border-r-[1px] border-black pt-2 items-center flex-col bg-[#2C2C2E] w-14">
           {/* Sidebar Buttons */}
-          <button onClick={handleToggleChat} className="mb-6">
+          <button onClick={handleToggleChat} className="hidden lg:block mb-6">
             <MenuBarSvg />
           </button>
           <div className="h-full w-full flex flex-col gap-y-6 py-14 items-center">
@@ -698,7 +698,7 @@ export default function HomePage() {
         >
           <div className="w-full mx-auto relative z-10">
             {/* Header with Tabs */}
-            <div className="flex items-center justify-start gap-5 py-3 bg-transparent w-full sticky top-0 z-50 px-4">
+            <div className="flex items-center justify-start gap-5 py-3  w-full sticky top-0 z-50 px-4 bg-[#2C2C2E] border border-b-gray-900 border-l-0 border-r-0 border-t-0 md:border-none">
               <motion.button
                 className={`tabbutton w-32 flex justify-center py-2 text-center transition-all duration-300 ease-in-out ${
                   selectedTab === "Home"
@@ -728,25 +728,16 @@ export default function HomePage() {
             </div>
 
             {/* Tab Content */}
-            <div className="w-full px-4">
+            <div className="w-full">
               {selectedTab === "Home" ? (
                 <div>
                   {/* Conditional Rendering of Jackpot Items */}
                   {allSkins.length > 0 && (
                     <>
-                      {/* Enhanced "Jackpot Items" Heading with Animation */}
-                      {/* <motion.h2
-                        className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 text-center my-5"
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 1 }}
-                      >
-                        Jackpot Items
-                      </motion.h2> */}
                       <SlotMachine reels={JackpotItemReel} />
 
                       {/* Animated Jackpot Items Carousel */}
-                      <div className="relative w-full overflow-hidden my-5">
+                      <div className="relative mx-auto w-full md:w-11/12 overflow-hidden my-5">
                         <motion.div
                           className="flex gap-2"
                           animate={controls}
@@ -770,8 +761,7 @@ export default function HomePage() {
                           {allSkins.map((skin) => (
                             <motion.div
                               key={skin._id}
-                              className="relative flex-shrink-0 items-center justify-center w-38 h-18 md:w-60 md:h-32 lg:w-72 lg:h-36 border-t-4 border-b-4 bg-gradient-to-r from-[#404040] to-[#636363] rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-                              style={{ borderColor: skin.participantColor }}
+                              className="border-[#2C2C2E] border-t-4 border-b-2 relative flex-shrink-0 items-center justify-center w-48 h-32 md:w-[220px] md:h-32  bg-gradient-to-r from-[#404040] to-[#636363] shadow-md hover:shadow-lg transition-shadow duration-300"
                             >
                               {/* Participant Avatar */}
                               <Image
@@ -783,11 +773,17 @@ export default function HomePage() {
                               />
 
                               {/* Price Badge */}
-                              <div className="flex items-center justify-start gap-0">
-                                <div className="text-[#EEC475] text-[11px] absolute left-0 top-0 bg-[#2C2C2E] w-12 h-6 flex justify-center items-center">
+                              <div className="flex items-center justify-start gap-0" 
+                              key={skin._id}
+                              >
+                                <div className="text-[#EEC475] text-[11px] absolute left-0 top-0 w-12 h-6 flex justify-center items-center"
+                                style={{ backgroundColor: skin.participantColor, }}
+                                >
                                   ${extractPrice(skin.price).toFixed(2)}
                                 </div>
-                                <div className="inclined-div h-6 w-4 absolute left-12 top-0 rotate bg-[#2C2C2E]"></div>
+                                <div className="inclined-div h-6 w-4 absolute left-[46px] top-0 rotate"
+                                style={{ backgroundColor: skin.participantColor, }}
+                                ></div>
                               </div>
 
                               {/* Item Icon */}
@@ -810,8 +806,8 @@ export default function HomePage() {
                           {allSkins.map((skin) => (
                             <motion.div
                               key={`${skin._id}-duplicate`}
-                              className="relative flex-shrink-0 items-center justify-center w-48 h-28 md:w-60 md:h-32 lg:w-72 lg:h-36 border-t-4 border-b-4 bg-gradient-to-r from-[#404040] to-[#636363] rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-                              style={{ borderColor: skin.participantColor }}
+                              className="border-[#2C2C2E] border-t-4 relative flex-shrink-0 items-center justify-center w-48 h-32  md:w-[220px] md:h-32  bg-gradient-to-r from-[#404040] to-[#636363] shadow-md hover:shadow-lg transition-shadow duration-300"
+                              // style={{ borderColor: skin.participantColor }}
                             >
                               {/* Participant Avatar */}
                               <Image
@@ -850,15 +846,6 @@ export default function HomePage() {
                     </>
                   )}
 
-                  {/* Current Jackpot Section */}
-                  {/* <motion.h2
-                    className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 text-center mb-3"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1 }}
-                  >
-                    Current Jackpot
-                  </motion.h2> */}
                   <SlotMachine reels={initialReels} />
 
                   <JackpotStatus

@@ -15,8 +15,8 @@ module.exports = {
         headerText: "#9B9BA1",
       },
       screens: {
-        'very-xs': '320px',
-        'xs': '640px',
+        'xs': '320px',
+        'beforelg': '781px',
       },
     },
   },

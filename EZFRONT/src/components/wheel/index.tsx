@@ -477,9 +477,9 @@ const HorizontalWheel: React.FC<HorizontalWheelProps> = ({
               totalValue={totalValue}
             >
               {/* Wheel Item Content */}
-              <div className="w-full flex justify-center items-center h-full">
+              {/* <div className="w-full flex justify-center items-center h-full">
                 <span className="text-white font-bold">{item.name}</span>
-              </div>
+              </div> */}
             </WheelItem>
           ))}
         </Wheel>

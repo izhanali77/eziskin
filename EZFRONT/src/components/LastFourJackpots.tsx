@@ -11,7 +11,7 @@ import { mapParticipants, Participant } from "@/utils/enums/mapParticipants";
 import { Jackpot } from "@/types/types";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import SlotMachine from "./SlotMachine";
-
+import { Socket, io } from "socket.io-client";
 // Tooltip Component using Framer Motion
 const Tooltip: React.FC<{ content: React.ReactNode; children: React.ReactNode }> = ({
   content,
@@ -45,7 +45,7 @@ const Tooltip: React.FC<{ content: React.ReactNode; children: React.ReactNode }>
 
 const SOCKET_SERVER_URL =
   process.env.NEXT_PUBLIC_SOCKET_SERVER_URL ||
-  "https://app-1bb60d42-2055-46c8-8af0-2d1a94fdfe9f.cleverapps.io";
+  "http://localhost:5000";
 
 // Fetch function for the last four jackpots
 const fetchLastFourJackpots = async (): Promise<Jackpot[]> => {
@@ -54,7 +54,6 @@ const fetchLastFourJackpots = async (): Promise<Jackpot[]> => {
 };
 
 const LastFourJackpots: React.FC = () => {
-  const queryClient = useQueryClient();
   const LastJackPot = [
     ['L', 'A', 'C', 'K', 'P', 'O', 'T'],
     ['A', 'A', 'C', 'K', 'P', 'O', 'T'],
@@ -79,11 +78,16 @@ const LastFourJackpots: React.FC = () => {
 
   // Handle Socket.IO for real-time updates
   useEffect(() => {
-    const socket = require("socket.io-client").io(SOCKET_SERVER_URL);
+    const socket: Socket = io(SOCKET_SERVER_URL);
+    // const socket = require("socket.io-client").io(SOCKET_SERVER_URL);
 
     // Listen for a custom event, e.g., 'newJackpot'
-    socket.on("newJackpot", () => {
-      refetch();
+    socket.on("newJackpot", (data : any) => {
+      console.log("hellow",data);
+      
+      if (data.msg === "success") {
+        refetch();
+      }
     });
 
     // Cleanup the socket connection when the component is unmounted
@@ -142,7 +146,7 @@ const LastFourJackpots: React.FC = () => {
       <div className="py-4">
         <SlotMachine reels={LastJackPot} />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2 md:px-6">
         <AnimatePresence>
           {data.map((jackpot) => {
             const participants: Participant[] = mapParticipants(jackpot.participants);
@@ -162,7 +166,7 @@ const LastFourJackpots: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5 }}
-                className="bg-[#3A3A3C] p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between"
+                className="bg-[#3A3A3C] p-6 rounded shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between"
               >
                 {/* Jackpot Header */}
                 <div className="flex justify-between items-center mb-4">
