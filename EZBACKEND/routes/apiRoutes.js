@@ -53,6 +53,8 @@ router.get('/user', isAuth, async (req, res) => {
       user.inventory.forEach(item => {
         currentInventoryItems[item.assetId] = item;
       });
+
+      
   
       // Determine which assetIds to remove (items no longer in Steam inventory)
       const assetIdsToRemove = [];
@@ -67,6 +69,8 @@ router.get('/user', isAuth, async (req, res) => {
         // Update the user's inventory by removing items not in Steam inventory
         user.inventory = user.inventory.filter(item => !assetIdsToRemove.includes(item.assetId));
         await user.save();
+        
+        
   
         // Update the items in the Item collection to disassociate them from the user
         await Item.updateMany(
@@ -116,7 +120,8 @@ router.get('/user', isAuth, async (req, res) => {
         user.inventory.push(...insertedItemIds);
         await user.save();
       }
-  
+      console.log("user inventory2",user.inventory);
+      
       // Return the updated user's inventory
       const updatedUser = await User.findOne({ steamId: steamID64 }).populate('inventory');
       res.json({ items: updatedUser.inventory });
