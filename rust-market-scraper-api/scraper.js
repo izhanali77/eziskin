@@ -4,7 +4,7 @@ const Item = require('./models/Item');
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const scrapeRustMarket = async (maxPages = 426) => {
+const scrapeRustMarket = async (maxPages = 436) => {
   const baseUrl = 'https://steamcommunity.com/market/search';
   let pageNumber = 1;
 

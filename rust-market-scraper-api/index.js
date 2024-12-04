@@ -2,7 +2,7 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 6000;
 const connectDB = require('./config/db');
 const itemRoutes = require('./routes/items');
 const { scheduleScraping } = require('./cron/scheduler');

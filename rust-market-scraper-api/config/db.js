@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/rust_market', {
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://bilalshehroz420:00000@cluster0.wru7job.mongodb.net/scrapper?retryWrites=true&w=majority', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
