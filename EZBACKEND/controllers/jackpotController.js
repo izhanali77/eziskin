@@ -115,33 +115,33 @@ const addUserToJackpot = async (userId, itemIds, jackpotId) => {
 
 
     // Update jackpot status to 'in_progress' if criteria met
-    if (jackpot.status === 'waiting') {
-      // Step 1: Extract all user IDs as strings from participants
-      const allUserIds = jackpot.participants.map(participant => participant.user._id.toString());
+    // if (jackpot.status === 'waiting') {
+    //   // Step 1: Extract all user IDs as strings from participants
+    //   const allUserIds = jackpot.participants.map(participant => participant.user._id.toString());
       
-      // Step 2: Create a Set to filter out duplicate user IDs
-      const uniqueUserIds = new Set(allUserIds);
+    //   // Step 2: Create a Set to filter out duplicate user IDs
+    //   const uniqueUserIds = new Set(allUserIds);
       
-      // Step 3: Check if there are at least two unique participants
-      if (uniqueUserIds.size >= 2) {
-        // Optional: Log unique user IDs for debugging
-        console.log('Unique Participants IDs:', Array.from(uniqueUserIds));
+    //   // Step 3: Check if there are at least two unique participants
+    //   if (uniqueUserIds.size >= 2) {
+    //     // Optional: Log unique user IDs for debugging
+    //     console.log('Unique Participants IDs:', Array.from(uniqueUserIds));
         
-        // Step 4: Update jackpot status to 'in_progress'
-        jackpot.status = 'in_progress';
+    //     // Step 4: Update jackpot status to 'in_progress'
+    //     jackpot.status = 'in_progress';
         
-        // Step 5: Start the round timer
-        jackpotManager.startRoundTimer();
-      }
-    }
-    // if (jackpot.participants.length >= 2 && jackpot.status === 'waiting') {
-    //   console.log(jackpot.participants[0].user._id);
-      
-    //   jackpot.status = 'in_progress';
-
-    //   // Start the round timer
-    //   jackpotManager.startRoundTimer();
+    //     // Step 5: Start the round timer
+    //     jackpotManager.startRoundTimer();
+    //   }
     // }
+    if (jackpot.participants.length >= 2 && jackpot.status === 'waiting') {
+      console.log(jackpot.participants[0].user._id);
+      
+      jackpot.status = 'in_progress';
+
+      // Start the round timer
+      jackpotManager.startRoundTimer();
+    }
 
     // Save the jackpot
     await jackpot.save();
